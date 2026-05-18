@@ -6,6 +6,7 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.SoundVis.Beatmaps;
 using osu.Game.Rulesets.SoundVis.UI;
 using osu.Game.Rulesets.UI;
+using osu.Framework.Input.Bindings;
 
 namespace osu.Game.Rulesets.SoundVis
 {
@@ -25,6 +26,8 @@ namespace osu.Game.Rulesets.SoundVis
             => new SoundVisDifficultyCalculator(RulesetInfo, beatmap);
 
         public override IEnumerable<Mod> GetModsFor(ModType type) => [];
+
+        public override IEnumerable<KeyBinding> GetDefaultKeyBindings(int variant = 0) => [];
 
         public override Drawable CreateIcon() => new SoundVisIcon();
     }

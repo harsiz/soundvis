@@ -6,6 +6,7 @@ using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.SoundVis.Objects;
 using osu.Game.Rulesets.UI;
 using osu.Game.Screens.Play;
+using osu.Framework.Allocation;
 
 namespace osu.Game.Rulesets.SoundVis.UI
 {
@@ -20,7 +21,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
         protected override ResumeOverlay? CreateResumeOverlay() => null;
 
-        protected override PassThroughInputManager CreateInputManager() => new PassThroughInputManager();
+        protected override PassThroughInputManager CreateInputManager() => new SoundVisInputManager(Ruleset?.RulesetInfo);
 
         public override DrawableHitObject<SoundVisHitObject>? CreateDrawableRepresentation(SoundVisHitObject h) => null;
     }
