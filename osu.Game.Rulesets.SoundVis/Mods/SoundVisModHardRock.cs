@@ -1,4 +1,5 @@
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.SoundVis.Objects;
@@ -12,7 +13,7 @@ namespace osu.Game.Rulesets.SoundVis.Mods
         public override string Acronym => "HR";
         public override ModType Type => ModType.DifficultyIncrease;
         public override double ScoreMultiplier => 1.06;
-        public override string Description => "Approach bars move 1.5× faster.";
+        public override LocalisableString Description => "Approach bars move 1.5x faster.";
         public override IconUsage? Icon => FontAwesome.Solid.AngleDoubleUp;
 
         public void ApplyToDrawableHitObject(DrawableHitObject drawable)
