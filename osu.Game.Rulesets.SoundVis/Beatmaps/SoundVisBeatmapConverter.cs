@@ -15,21 +15,17 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
 
         public override bool CanConvert() => true;
 
+        // Emit one invisible dummy on the very first hit object, drop the rest.
+        // osu! refuses to enter the player with zero hit objects, so we need at least one.
+        private bool dummyEmitted;
+
         protected override IEnumerable<SoundVisHitObject> ConvertHitObject(HitObject original, IBeatmap beatmap, CancellationToken cancellationToken)
-            => [];
-
-        protected override Beatmap<SoundVisHitObject> CreateBeatmap() => new SoundVisBeatmap();
-
-        public override IBeatmap Convert(CancellationToken cancellationToken = default)
         {
-            var converted = (SoundVisBeatmap)base.Convert(cancellationToken);
-
-            // osu! blocks entry to the player if there are zero hit objects.
-            // Add one invisible dummy at t=0 so the preflight check passes.
-            if (converted.HitObjects.Count == 0)
-                converted.HitObjects.Add(new SoundVisHitObject { StartTime = 0 });
-
-            return converted;
+            if (!dummyEmitted)
+            {
+                dummyEmitted = true;
+                yield return new SoundVisHitObject { StartTime = 0 };
+            }
         }
     }
 }
