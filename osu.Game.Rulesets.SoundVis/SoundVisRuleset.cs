@@ -30,7 +30,7 @@ namespace osu.Game.Rulesets.SoundVis
         public override IEnumerable<Mod> GetModsFor(ModType type) => type switch
         {
             ModType.DifficultyReduction => new Mod[] { new SoundVisModNoFail() },
-            ModType.DifficultyIncrease  => new Mod[] { new SoundVisModHardRock() },
+            ModType.DifficultyIncrease  => new Mod[] { new SoundVisModHardRock(), new SoundVisModHarderHardRock() },
             _ => [],
         };
 

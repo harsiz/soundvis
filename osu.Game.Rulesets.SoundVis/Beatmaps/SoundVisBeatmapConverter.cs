@@ -4,13 +4,18 @@ using System.Threading;
 using osu.Game.Audio;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Objects;
+using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.SoundVis.Objects;
 
 namespace osu.Game.Rulesets.SoundVis.Beatmaps
 {
     public class SoundVisBeatmapConverter : BeatmapConverter<SoundVisHitObject>
     {
-        private static readonly float[] Angles = { 0f, 90f, 180f, 270f };
+        // Skip objects that are closer than this — filters true simultaneity
+        // (e.g. mania chords) without losing fast streams (83ms at 180BPM 1/4)
+        private const double MIN_GAP_MS = 60;
+
+        private double lastEmittedTime = double.MinValue;
 
         public SoundVisBeatmapConverter(IBeatmap beatmap, Ruleset ruleset)
             : base(beatmap, ruleset)
@@ -19,62 +24,47 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
 
         public override bool CanConvert() => true;
 
-        private bool objectsEmitted;
-
         protected override IEnumerable<SoundVisHitObject> ConvertHitObject(
             HitObject original, IBeatmap beatmap, CancellationToken cancellationToken)
         {
-            if (objectsEmitted) yield break;
-            objectsEmitted = true;
+            if (original.StartTime - lastEmittedTime < MIN_GAP_MS)
+                yield break;
 
-            int seed = (int)(beatmap.BeatmapInfo.OnlineID ^ (beatmap.BeatmapInfo.OnlineID >> 16));
-            if (seed == 0) seed = beatmap.BeatmapInfo.GetHashCode();
-            var rng = new Random(seed);
+            lastEmittedTime = original.StartTime;
 
-            double startTime = beatmap.ControlPointInfo.TimingPoints.Count > 0
-                ? beatmap.ControlPointInfo.TimingPoints[0].Time
-                : 0;
-
-            double endTime = beatmap.HitObjects.Count > 0
-                ? beatmap.HitObjects[^1].GetEndTime()
-                : startTime + 30_000;
-
-            if (endTime <= startTime)
-                endTime = startTime + 30_000;
-
-            double time = startTime;
-            int angleIndex = 0;
-
-            while (time <= endTime)
+            var obj = new SoundVisHitObject
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                StartTime = original.StartTime,
+                ApproachAngle = GetApproachAngle(original, beatmap),
+            };
+            obj.Samples.Add(new HitSampleInfo(HitSampleInfo.HIT_NORMAL));
+            yield return obj;
+        }
 
-                var timingPoint = beatmap.ControlPointInfo.TimingPointAt(time);
-                double beatLength = timingPoint.BeatLength;
-                double bpm = 60_000.0 / beatLength;
-
-                // Denser pattern at higher BPM so harder maps feel faster
-                double interval = bpm >= 160 ? beatLength          // every beat
-                                : bpm >= 120 ? beatLength * 1.5    // every 1.5 beats
-                                :              beatLength * 2;      // every 2 beats
-
-                // Alternate sides, never the same twice in a row
-                int next;
-                do { next = rng.Next(Angles.Length); } while (next == angleIndex && Angles.Length > 1);
-                angleIndex = next;
-
-                var obj = new SoundVisHitObject
+        private static float GetApproachAngle(HitObject original, IBeatmap beatmap)
+        {
+            // osu! standard — angle from playfield centre to hit object position
+            // (bar comes FROM the direction the object is relative to centre)
+            if (original is IHasPosition pos)
+            {
+                float dx = pos.Position.X - 256f;
+                float dy = pos.Position.Y - 192f;
+                if (MathF.Abs(dx) + MathF.Abs(dy) > 25f)
                 {
-                    StartTime = time,
-                    ApproachAngle = Angles[angleIndex],
-                };
-
-                // Skin hitsound — plays automatically on hit via DrawableHitObject.PlaySamples()
-                obj.Samples.Add(new HitSampleInfo(HitSampleInfo.HIT_NORMAL));
-
-                yield return obj;
-                time += interval;
+                    float angle = MathF.Atan2(dx, -dy) * 180f / MathF.PI;
+                    return angle < 0 ? angle + 360f : angle;
+                }
             }
+
+            // mania — spread columns evenly around 360°
+            if (original is IHasColumn col)
+            {
+                int keys = Math.Max((int)beatmap.Difficulty.CircleSize, 1);
+                return (float)col.Column / keys * 360f;
+            }
+
+            // fallback (taiko, catch, etc.) — golden-ratio spread by time
+            return (float)((original.StartTime * 137.508) % 360);
         }
     }
 }
