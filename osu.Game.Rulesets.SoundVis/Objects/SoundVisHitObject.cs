@@ -1,10 +1,18 @@
+using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects;
+using osuTK;
 
 namespace osu.Game.Rulesets.SoundVis.Objects
 {
-    // We don't really have "hit objects" — this is a music visualiser, not a game mode.
-    // This exists purely so osu! lazer's ruleset machinery is happy.
     public class SoundVisHitObject : HitObject
     {
+        // Normalised position [0,1] in both axes — scaled to playfield size in the drawable.
+        public Vector2 Position { get; set; }
+
+        // Distance from the previous object in normalised units.
+        // Used for scoring (longer jump = more points) and difficulty.
+        public float JumpDistance { get; set; }
+
+        public override Judgement CreateJudgement() => new SoundVisJudgement(JumpDistance);
     }
 }

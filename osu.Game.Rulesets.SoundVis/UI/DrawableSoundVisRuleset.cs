@@ -23,6 +23,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
         protected override PassThroughInputManager CreateInputManager() => new SoundVisInputManager(Ruleset?.RulesetInfo);
 
-        public override DrawableHitObject<SoundVisHitObject>? CreateDrawableRepresentation(SoundVisHitObject h) => null;
+        public override DrawableHitObject<SoundVisHitObject>? CreateDrawableRepresentation(SoundVisHitObject h)
+            => new DrawableSoundVisHitObject(h);
     }
 }
