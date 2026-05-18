@@ -23,10 +23,20 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
         private float baseRotationDegsPerMs = 360f / 4000f;
         private float speedMultiplier = 1f;
-        private int spinDirection = 1; // +1 = clockwise, -1 = counter-clockwise
+        private int spinDirection = 1;
 
         private Container logoContainer = null!;
         private Box hoverGlow = null!;
+
+        private static readonly Color4[] SparkColours =
+        {
+            new Color4(255, 100, 150, 255),
+            new Color4(100, 200, 255, 255),
+            new Color4(255, 220, 80, 255),
+            new Color4(150, 255, 120, 255),
+            new Color4(220, 100, 255, 255),
+            new Color4(255, 160, 60, 255),
+        };
 
         [Resolved(CanBeNull = true)]
         private Bindable<WorkingBeatmap>? beatmap { get; set; }
@@ -42,7 +52,10 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
             logoContainer = new Container
             {
-                RelativeSizeAxes = Axes.Both,
+                // Anchor + Origin = Centre so Rotation pivots around the logo's own centre
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                Size = new Vector2(LOGO_RADIUS * 2),
                 Masking = true,
                 CornerRadius = LOGO_RADIUS,
                 Children = new Drawable[]
@@ -101,12 +114,57 @@ namespace osu.Game.Rulesets.SoundVis.UI
             logoContainer.Rotation += baseRotationDegsPerMs * speedMultiplier * spinDirection * elapsed;
         }
 
-        /// <summary>Reverses spin direction and kicks the speed — called on a successful hit.</summary>
         public void ReverseSpinDirection()
         {
             spinDirection *= -1;
             speedMultiplier = 3.5f;
-            hoverGlow.FadeTo(0.5f, 30).Then().FadeOut(200);
+
+            // White flash
+            hoverGlow.FadeTo(0.65f, 20).Then().FadeOut(350, Easing.OutQuint);
+
+            // Expanding ring
+            var ring = new CircularContainer
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                Size = new Vector2(LOGO_RADIUS * 2),
+                BorderColour = Color4.White,
+                BorderThickness = 3f,
+                Masking = true,
+                Alpha = 0.9f,
+                Child = new Box { RelativeSizeAxes = Axes.Both, Alpha = 0, AlwaysPresent = true },
+            };
+            AddInternal(ring);
+            ring.ScaleTo(2.8f, 500, Easing.OutQuint)
+                .FadeOut(500, Easing.OutQuint)
+                .OnComplete(d => d.Expire());
+
+            // Spark particles
+            for (int i = 0; i < 8; i++)
+            {
+                float angleDeg = i / 8f * 360f;
+                float angleRad = angleDeg * MathF.PI / 180f;
+                var colour = SparkColours[i % SparkColours.Length];
+
+                var spark = new Box
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(4, 14),
+                    Rotation = angleDeg,
+                    Colour = colour,
+                    Alpha = 1f,
+                };
+                AddInternal(spark);
+
+                float targetX = MathF.Sin(angleRad) * 110f;
+                float targetY = -MathF.Cos(angleRad) * 110f;
+
+                spark.MoveTo(new Vector2(targetX, targetY), 450, Easing.OutQuint)
+                     .ScaleTo(new Vector2(1f, 0.1f), 450, Easing.OutQuint)
+                     .FadeOut(450, Easing.OutQuint)
+                     .OnComplete(d => d.Expire());
+            }
         }
 
         public void SetHovered(bool hovered)
