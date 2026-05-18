@@ -4,6 +4,7 @@ using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.SoundVis.Beatmaps;
+using osu.Game.Rulesets.SoundVis.Mods;
 using osu.Game.Rulesets.SoundVis.UI;
 using osu.Game.Rulesets.UI;
 using osu.Framework.Input.Bindings;
@@ -26,7 +27,12 @@ namespace osu.Game.Rulesets.SoundVis
         public override DifficultyCalculator CreateDifficultyCalculator(IWorkingBeatmap beatmap)
             => new SoundVisDifficultyCalculator(RulesetInfo, beatmap);
 
-        public override IEnumerable<Mod> GetModsFor(ModType type) => [];
+        public override IEnumerable<Mod> GetModsFor(ModType type) => type switch
+        {
+            ModType.DifficultyReduction => new Mod[] { new SoundVisModNoFail() },
+            ModType.DifficultyIncrease  => new Mod[] { new SoundVisModHardRock() },
+            _ => [],
+        };
 
         public override IEnumerable<KeyBinding> GetDefaultKeyBindings(int variant = 0) => new[]
         {

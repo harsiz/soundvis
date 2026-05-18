@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using osu.Game.Audio;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.SoundVis.Objects;
@@ -9,7 +10,6 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
 {
     public class SoundVisBeatmapConverter : BeatmapConverter<SoundVisHitObject>
     {
-        // Approach angles — top, right, bottom, left
         private static readonly float[] Angles = { 0f, 90f, 180f, 270f };
 
         public SoundVisBeatmapConverter(IBeatmap beatmap, Ruleset ruleset)
@@ -51,19 +51,29 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
 
                 var timingPoint = beatmap.ControlPointInfo.TimingPointAt(time);
                 double beatLength = timingPoint.BeatLength;
+                double bpm = 60_000.0 / beatLength;
 
-                // Pick a random side, but never the same side twice in a row
+                // Denser pattern at higher BPM so harder maps feel faster
+                double interval = bpm >= 160 ? beatLength          // every beat
+                                : bpm >= 120 ? beatLength * 1.5    // every 1.5 beats
+                                :              beatLength * 2;      // every 2 beats
+
+                // Alternate sides, never the same twice in a row
                 int next;
                 do { next = rng.Next(Angles.Length); } while (next == angleIndex && Angles.Length > 1);
                 angleIndex = next;
 
-                yield return new SoundVisHitObject
+                var obj = new SoundVisHitObject
                 {
                     StartTime = time,
                     ApproachAngle = Angles[angleIndex],
                 };
 
-                time += beatLength * 2;
+                // Skin hitsound — plays automatically on hit via DrawableHitObject.PlaySamples()
+                obj.Samples.Add(new HitSampleInfo(HitSampleInfo.HIT_NORMAL));
+
+                yield return obj;
+                time += interval;
             }
         }
     }

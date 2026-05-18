@@ -24,6 +24,9 @@ namespace osu.Game.Rulesets.SoundVis.Objects
         private Container barGroup = null!;
         private Box bar = null!;
 
+        /// <summary>Set by HR mod — 1.5 means bars travel at 1.5× speed.</summary>
+        public float ApproachSpeedMultiplier { get; set; } = 1f;
+
         protected override double InitialLifetimeOffset => APPROACH_TIME + 300;
 
         public DrawableSoundVisHitObject(SoundVisHitObject hitObject)
@@ -78,15 +81,24 @@ namespace osu.Game.Rulesets.SoundVis.Objects
         {
             base.Update();
 
+            double effectiveApproach = APPROACH_TIME / ApproachSpeedMultiplier;
+            double timeUntilHit = HitObject.StartTime - Time.Current;
+
+            // Don't show the bar until it's within the effective approach window
+            if (timeUntilHit > effectiveApproach)
+            {
+                barGroup.Alpha = 0;
+                return;
+            }
+
             double progress = Math.Clamp(
-                (Time.Current - HitObject.StartTime + APPROACH_TIME) / APPROACH_TIME, 0, 1);
+                (Time.Current - HitObject.StartTime + effectiveApproach) / effectiveApproach, 0, 1);
 
             float dist = (float)(APPROACH_DIST - (APPROACH_DIST - LOGO_RADIUS) * progress);
             float rad = HitObject.ApproachAngle * MathF.PI / 180f;
             barGroup.X = MathF.Sin(rad) * dist;
             barGroup.Y = -MathF.Cos(rad) * dist;
 
-            // Fade in over the first quarter of the approach
             barGroup.Alpha = (float)Math.Clamp(progress * 4, 0, 1);
         }
 
