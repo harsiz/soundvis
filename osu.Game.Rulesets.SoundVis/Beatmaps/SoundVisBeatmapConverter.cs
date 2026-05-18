@@ -20,9 +20,9 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
 
         protected override Beatmap<SoundVisHitObject> CreateBeatmap() => new SoundVisBeatmap();
 
-        public override IBeatmap Convert(IBeatmap beatmap, CancellationToken cancellationToken = default)
+        public override IBeatmap Convert(CancellationToken cancellationToken = default)
         {
-            var converted = (SoundVisBeatmap)base.Convert(beatmap, cancellationToken);
+            var converted = (SoundVisBeatmap)base.Convert(cancellationToken);
 
             // osu! blocks entry to the player if there are zero hit objects.
             // Add one invisible dummy at t=0 so the preflight check passes.
