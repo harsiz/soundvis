@@ -22,16 +22,13 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
             var objects = beatmap.HitObjects.OfType<SoundVisHitObject>().ToList();
 
             if (objects.Count < 2)
-                return new DifficultyAttributes(mods, 0);
+                return new DifficultyAttributes(mods, 1.0);
 
             double totalDuration = (objects[^1].StartTime - objects[0].StartTime) / 1000.0;
-            double objectsPerSecond = totalDuration > 0 ? objects.Count / totalDuration : 1.0;
-            double avgJumpDistance = objects.Skip(1).Average(o => o.JumpDistance);
+            double bps = totalDuration > 0 ? objects.Count / totalDuration : 1.0;
 
-            // star rating: scales with jump distance and density
-            double stars = Math.Log(1 + (avgJumpDistance / 0.5) * Math.Sqrt(objectsPerSecond) * 2.0) * 4.0;
-            stars = Math.Round(Math.Clamp(stars, 0.5, 10.0) * clockRate, 2);
-
+            // Star rating scales with object density (BPS)
+            double stars = Math.Round(Math.Clamp(Math.Log(1 + bps * 3) * 2.5 * clockRate, 1.0, 10.0), 2);
             return new DifficultyAttributes(mods, stars);
         }
 

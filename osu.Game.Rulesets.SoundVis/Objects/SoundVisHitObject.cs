@@ -1,17 +1,13 @@
 using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects;
-using osuTK;
+using osu.Game.Rulesets.SoundVis.Objects;
 
 namespace osu.Game.Rulesets.SoundVis.Objects
 {
     public class SoundVisHitObject : HitObject
     {
-        // Normalised position [0,1] in both axes — scaled to playfield size in the drawable.
-        public Vector2 Position { get; set; }
-
-        // Distance from the previous object in normalised units.
-        // Used for scoring (longer jump = more points) and difficulty.
-        public float JumpDistance { get; set; }
+        // Which side the approach bar comes from (degrees: 0=top, 90=right, 180=bottom, 270=left)
+        public float ApproachAngle { get; set; }
 
         public override Judgement CreateJudgement() => new SoundVisJudgement();
     }

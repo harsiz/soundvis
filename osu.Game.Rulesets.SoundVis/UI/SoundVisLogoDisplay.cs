@@ -23,6 +23,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
         private float baseRotationDegsPerMs = 360f / 4000f;
         private float speedMultiplier = 1f;
+        private int spinDirection = 1; // +1 = clockwise, -1 = counter-clockwise
 
         private Container logoContainer = null!;
         private Box hoverGlow = null!;
@@ -33,6 +34,8 @@ namespace osu.Game.Rulesets.SoundVis.UI
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
+            Anchor = Anchor.Centre;
+            Origin = Anchor.Centre;
             Size = new Vector2(LOGO_RADIUS * 2);
 
             Sprite logoSprite;
@@ -81,10 +84,10 @@ namespace osu.Game.Rulesets.SoundVis.UI
             base.OnNewBeat(beatIndex, timingPoint, effectPoint, amplitudes);
 
             baseRotationDegsPerMs = (float)(360.0 / (timingPoint.BeatLength * 8));
-            speedMultiplier = 2.8f;
+            speedMultiplier = 2.0f;
 
             logoContainer
-                .ScaleTo(1.12f, 55, Easing.OutQuint)
+                .ScaleTo(1.10f, 60, Easing.OutQuint)
                 .Then()
                 .ScaleTo(1f, timingPoint.BeatLength * 0.88, Easing.OutQuint);
         }
@@ -95,22 +98,20 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
             float elapsed = (float)Clock.ElapsedFrameTime;
             speedMultiplier = MathF.Max(1f, speedMultiplier - 0.003f * elapsed);
-            logoContainer.Rotation += baseRotationDegsPerMs * speedMultiplier * elapsed;
+            logoContainer.Rotation += baseRotationDegsPerMs * speedMultiplier * spinDirection * elapsed;
+        }
+
+        /// <summary>Reverses spin direction and kicks the speed — called on a successful hit.</summary>
+        public void ReverseSpinDirection()
+        {
+            spinDirection *= -1;
+            speedMultiplier = 3.5f;
+            hoverGlow.FadeTo(0.5f, 30).Then().FadeOut(200);
         }
 
         public void SetHovered(bool hovered)
         {
-            hoverGlow.FadeTo(hovered ? 0.35f : 0f, 80);
-        }
-
-        /// <summary>
-        /// Glide the logo to a position in normalised [0,1] parent-relative space.
-        /// Requires the parent to have RelativeSizeAxes = Both and this drawable to
-        /// use RelativePositionAxes = Both with Anchor = TopLeft.
-        /// </summary>
-        public void MoveToNormalisedPosition(Vector2 normalised, double duration = 300)
-        {
-            this.MoveTo(normalised, duration, Easing.OutQuint);
+            hoverGlow.FadeTo(hovered ? 0.3f : 0f, 80);
         }
     }
 }

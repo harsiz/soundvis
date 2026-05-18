@@ -28,7 +28,12 @@ namespace osu.Game.Rulesets.SoundVis
 
         public override IEnumerable<Mod> GetModsFor(ModType type) => [];
 
-        public override IEnumerable<KeyBinding> GetDefaultKeyBindings(int variant = 0) => [];
+        public override IEnumerable<KeyBinding> GetDefaultKeyBindings(int variant = 0) => new[]
+        {
+            new KeyBinding(InputKey.Z, SoundVisAction.Hit),
+            new KeyBinding(InputKey.X, SoundVisAction.Hit),
+            new KeyBinding(InputKey.Space, SoundVisAction.Hit),
+        };
 
         public override ISkinTransformer? CreateSkinTransformer(ISkin skin, IBeatmap beatmap)
             => new SoundVisSkinTransformer(skin);

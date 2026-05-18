@@ -1,14 +1,15 @@
+using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Input.Events;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.SoundVis.Objects;
 using osu.Game.Rulesets.UI;
-using osuTK;
 
 namespace osu.Game.Rulesets.SoundVis.UI
 {
-    public partial class SoundVisPlayfield : Playfield
+    public partial class SoundVisPlayfield : Playfield, IKeyBindingHandler<SoundVisAction>
     {
         private SoundVisLogoDisplay logoDisplay = null!;
 
@@ -40,10 +41,8 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
             logoDisplay = new SoundVisLogoDisplay
             {
-                Anchor = Anchor.TopLeft,
+                Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                RelativePositionAxes = Axes.Both,
-                Position = new Vector2(0.5f, 0.5f),
             };
             AddInternal(logoDisplay);
         }
@@ -53,33 +52,47 @@ namespace osu.Game.Rulesets.SoundVis.UI
             base.Add(h);
 
             if (h is DrawableSoundVisHitObject dh)
-                logoDisplay.MoveToNormalisedPosition(dh.HitObject.Position);
+            {
+                dh.Anchor = Anchor.Centre;
+                dh.Origin = Anchor.Centre;
+                dh.OnNewResult += (_, result) =>
+                {
+                    if (result.Type == Scoring.HitResult.Great)
+                        logoDisplay.ReverseSpinDirection();
+                };
+            }
         }
 
-        protected override void Update()
+        public bool OnPressed(KeyBindingPressEvent<SoundVisAction> e)
         {
-            base.Update();
+            if (e.Action != SoundVisAction.Hit) return false;
 
-            // Get mouse position in this playfield's local coordinate space.
-            var inputManager = GetContainingInputManager();
-            if (inputManager == null) return;
-
-            var mouseLocal = ToLocalSpace(inputManager.CurrentState.Mouse.Position);
-
-            // Logo visual centre in playfield pixels — read the animated X/Y directly
-            // (these update each frame as the MoveTo transform runs).
-            var logoCentre = new Vector2(logoDisplay.X * DrawWidth, logoDisplay.Y * DrawHeight);
-
-            float radius = SoundVisLogoDisplay.LOGO_RADIUS;
-            bool isOver = (mouseLocal - logoCentre).LengthSquared <= radius * radius;
-
-            logoDisplay.SetHovered(isOver);
+            // Find the alive hit object with the smallest absolute time offset
+            DrawableSoundVisHitObject? best = null;
+            double bestOffset = DrawableSoundVisHitObject.MISS_WINDOW + 1;
 
             foreach (var drawable in HitObjectContainer.AliveObjects)
             {
-                if (drawable is DrawableSoundVisHitObject dh)
-                    dh.MouseIsOverLogo = isOver;
+                if (drawable is DrawableSoundVisHitObject dh && !dh.Judged)
+                {
+                    double offset = Math.Abs(dh.Time.Current - dh.HitObject.StartTime);
+                    if (offset < bestOffset)
+                    {
+                        bestOffset = offset;
+                        best = dh;
+                    }
+                }
             }
+
+            if (best != null)
+            {
+                best.TriggerResult();
+                return true;
+            }
+
+            return false;
         }
+
+        public void OnReleased(KeyBindingReleaseEvent<SoundVisAction> e) { }
     }
 }
