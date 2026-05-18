@@ -15,9 +15,10 @@ namespace osu.Game.Rulesets.SoundVis.Objects
 
         public override HitResult MaxResult => HitResult.Great;
 
-        protected override double HealthIncreaseFor(HitResult result) => result == HitResult.Great ? 0.05 : -0.1;
+        public override double NumericResultFor(JudgementResult result)
+            => result.Type == HitResult.Great ? Math.Max(100, (int)(jumpDistance * 3f)) : 0;
 
-        public override int NumericResultFor(HitResult result)
-            => result == HitResult.Great ? Math.Max(100, (int)(jumpDistance * 3f)) : 0;
+        protected override double HealthIncreaseFor(JudgementResult result)
+            => result.Type == HitResult.Great ? 0.05 : -0.1;
     }
 }
