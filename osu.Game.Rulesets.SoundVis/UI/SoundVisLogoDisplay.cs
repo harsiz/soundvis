@@ -108,7 +108,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
         /// Requires the parent to have RelativeSizeAxes = Both and this drawable to
         /// use RelativePositionAxes = Both with Anchor = TopLeft.
         /// </summary>
-        public void MoveToNormalisedPosition(Vector2 normalised, double duration = 500)
+        public void MoveToNormalisedPosition(Vector2 normalised, double duration = 300)
         {
             this.MoveTo(normalised, duration, Easing.OutQuint);
         }

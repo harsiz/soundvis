@@ -1,6 +1,4 @@
-using System;
 using osu.Framework.Graphics;
-using osu.Framework.Input.Events;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Scoring;
 using osuTK;
@@ -10,32 +8,19 @@ namespace osu.Game.Rulesets.SoundVis.Objects
     public partial class DrawableSoundVisHitObject : DrawableHitObject<SoundVisHitObject>
     {
         private const float HIT_WINDOW = 200f;
-        public const float LOGO_RADIUS = 80f;
 
-        /// <summary>Fired when cursor enters/leaves this hit zone.</summary>
-        public event Action<bool>? HoverStateChanged;
+        // Set by the playfield every frame based on actual logo visual position.
+        public bool MouseIsOverLogo { get; set; }
 
-        private bool mouseIsOver;
+        // Short lead time so the logo arrives just before the hit window opens.
+        protected override double InitialLifetimeOffset => 700;
 
         public DrawableSoundVisHitObject(SoundVisHitObject hitObject)
             : base(hitObject)
         {
             Alpha = 0;
-            Size = new Vector2(LOGO_RADIUS * 2);
+            Size = Vector2.Zero; // no visual, no input area — detection is done in Playfield
             Origin = Anchor.Centre;
-        }
-
-        protected override bool OnHover(HoverEvent e)
-        {
-            mouseIsOver = true;
-            HoverStateChanged?.Invoke(true);
-            return true;
-        }
-
-        protected override void OnHoverLost(HoverLostEvent e)
-        {
-            mouseIsOver = false;
-            HoverStateChanged?.Invoke(false);
         }
 
         protected override void CheckForResult(bool userTriggered, double timeOffset)
@@ -49,15 +34,8 @@ namespace osu.Game.Rulesets.SoundVis.Objects
                 return;
             }
 
-            if (mouseIsOver)
+            if (MouseIsOverLogo)
                 ApplyResult(HitResult.Great);
-        }
-
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
-        {
-            Vector2 local = ToLocalSpace(screenSpacePos);
-            Vector2 centre = DrawSize / 2;
-            return (local - centre).Length <= LOGO_RADIUS;
         }
 
         protected override void UpdateHitStateTransforms(ArmedState state) { }

@@ -10,6 +10,9 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
 {
     public class SoundVisBeatmapConverter : BeatmapConverter<SoundVisHitObject>
     {
+        private const float MIN_JUMP = 0.35f; // minimum normalised distance between objects
+        private const float MARGIN = 0.07f;   // keep logo away from screen edges
+
         public SoundVisBeatmapConverter(IBeatmap beatmap, Ruleset ruleset)
             : base(beatmap, ruleset)
         {
@@ -17,7 +20,6 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
 
         public override bool CanConvert() => true;
 
-        // All objects are generated on the first call; subsequent calls yield nothing.
         private bool objectsEmitted;
 
         protected override IEnumerable<SoundVisHitObject> ConvertHitObject(
@@ -52,9 +54,16 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
                 var timingPoint = beatmap.ControlPointInfo.TimingPointAt(time);
                 double beatLength = timingPoint.BeatLength;
 
-                float x = (float)(rng.NextDouble() * 0.7 + 0.15);
-                float y = (float)(rng.NextDouble() * 0.7 + 0.15);
-                var pos = new Vector2(x, y);
+                // Retry until we get a position that is far enough from the previous one.
+                Vector2 pos;
+                int tries = 0;
+                do
+                {
+                    float x = MARGIN + (float)(rng.NextDouble() * (1f - MARGIN * 2));
+                    float y = MARGIN + (float)(rng.NextDouble() * (1f - MARGIN * 2));
+                    pos = new Vector2(x, y);
+                    tries++;
+                } while (!first && (pos - prevPos).Length < MIN_JUMP && tries < 20);
 
                 float jumpDistance = first ? 0f : (pos - prevPos).Length;
                 first = false;
