@@ -1,10 +1,11 @@
 using System.Collections.Generic;
-using osu.Framework.Allocation;
 using osu.Framework.Input;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Mods;
+using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.SoundVis.Objects;
 using osu.Game.Rulesets.UI;
+using osu.Game.Screens.Play;
 
 namespace osu.Game.Rulesets.SoundVis.UI
 {

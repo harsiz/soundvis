@@ -7,22 +7,26 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Game.Beatmaps;
 using osu.Game.Graphics;
+using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 
 namespace osu.Game.Rulesets.SoundVis.UI
 {
     /// <summary>
-    /// Bottom bar that lets you crank the pitch up or down like a DJ.
-    /// Adjusts track frequency — changes both pitch + tempo (vinyl speed style).
+    /// Bottom bar for pitch / speed control. Adjusts track frequency (vinyl-speed style).
+    /// Keeps a single BindableDouble registered on the track and updates it in place
+    /// rather than re-adding on every change.
     /// </summary>
     public partial class PitchControlBar : CompositeDrawable
     {
-        private readonly BindableDouble pitchRate = new BindableDouble(1.0)
+        // This bindable is what actually drives the audio engine.
+        private readonly BindableDouble frequencyAdjust = new BindableDouble(1.0)
         {
             MinValue = 0.5,
             MaxValue = 2.0,
             Precision = 0.01,
+            Default = 1.0,
         };
 
         private OsuSpriteText label = null!;
@@ -40,6 +44,8 @@ namespace osu.Game.Rulesets.SoundVis.UI
                 new Container
                 {
                     AutoSizeAxes = Axes.Both,
+                    Masking = true,
+                    CornerRadius = 8,
                     Padding = new MarginPadding { Horizontal = 20, Vertical = 10 },
                     Children = new Drawable[]
                     {
@@ -47,7 +53,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
                         {
                             RelativeSizeAxes = Axes.Both,
                             Colour = OsuColour.Gray(0.1f),
-                            Alpha = 0.85f,
+                            Alpha = 0.88f,
                         },
                         new FillFlowContainer
                         {
@@ -78,19 +84,27 @@ namespace osu.Game.Rulesets.SoundVis.UI
                                     Height = 20,
                                     Anchor = Anchor.CentreLeft,
                                     Origin = Anchor.CentreLeft,
-                                    Current = pitchRate,
+                                    Current = frequencyAdjust,
                                 },
                                 label = new OsuSpriteText
                                 {
                                     Font = OsuFont.GetFont(size: 12, weight: FontWeight.SemiBold),
                                     Anchor = Anchor.CentreLeft,
                                     Origin = Anchor.CentreLeft,
-                                    Width = 45,
+                                    Width = 48,
                                 },
-                                new ResetButton(pitchRate)
+                                new OsuClickableContainer
                                 {
+                                    AutoSizeAxes = Axes.Both,
                                     Anchor = Anchor.CentreLeft,
                                     Origin = Anchor.CentreLeft,
+                                    Action = () => frequencyAdjust.SetDefault(),
+                                    Child = new OsuSpriteText
+                                    {
+                                        Text = "1×",
+                                        Font = OsuFont.GetFont(size: 12, weight: FontWeight.SemiBold),
+                                        Colour = colours.Yellow,
+                                    },
                                 },
                             }
                         }
@@ -98,48 +112,24 @@ namespace osu.Game.Rulesets.SoundVis.UI
                 }
             };
 
-            pitchRate.BindValueChanged(v =>
+            // Register the adjustment once on the current track, then just update value.
+            beatmap.BindValueChanged(e =>
             {
-                string indicator = v.NewValue > 1.0 ? "+" : "";
-                label.Text = $"{indicator}{(v.NewValue - 1.0) * 100:0}%";
-                applyPitch(v.NewValue);
+                e.OldValue?.Track.RemoveAdjustment(AdjustableProperty.Frequency, frequencyAdjust);
+                e.NewValue?.Track.AddAdjustment(AdjustableProperty.Frequency, frequencyAdjust);
+            }, true);
+
+            frequencyAdjust.BindValueChanged(v =>
+            {
+                string sign = v.NewValue >= 1.0 ? "+" : "";
+                label.Text = $"{sign}{(v.NewValue - 1.0) * 100:0}%";
             }, true);
         }
 
-        private void applyPitch(double rate)
+        protected override void Dispose(bool isDisposing)
         {
-            var track = beatmap.Value?.Track;
-            if (track == null) return;
-
-            track.ResetSpeedAdjustments();
-            track.AddAdjustment(AdjustableProperty.Frequency, new BindableDouble(rate));
-        }
-
-        // Reset button — double click the slider label to get back to 1x
-        private partial class ResetButton : OsuAnimatedButton
-        {
-            private readonly BindableDouble target;
-
-            public ResetButton(BindableDouble target)
-            {
-                this.target = target;
-                Size = new osuTK.Vector2(40, 20);
-            }
-
-            [BackgroundDependencyLoader]
-            private void load(OsuColour colours)
-            {
-                Add(new OsuSpriteText
-                {
-                    Text = "1x",
-                    Font = OsuFont.GetFont(size: 11, weight: FontWeight.SemiBold),
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    Colour = colours.Yellow,
-                });
-
-                Action = () => target.SetDefault();
-            }
+            base.Dispose(isDisposing);
+            beatmap.Value?.Track.RemoveAdjustment(AdjustableProperty.Frequency, frequencyAdjust);
         }
     }
 }

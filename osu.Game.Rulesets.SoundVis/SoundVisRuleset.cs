@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Sprites;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Mods;
@@ -26,12 +25,6 @@ namespace osu.Game.Rulesets.SoundVis
             => new SoundVisDifficultyCalculator(RulesetInfo, beatmap);
 
         public override IEnumerable<Mod> GetModsFor(ModType type) => [];
-
-        public override IRulesetConfigManager? CreateConfig(SettingsStore? settings)
-            => new SoundVisConfigManager(settings, RulesetInfo);
-
-        public override RulesetSettingsSubsection CreateSettings()
-            => new SoundVisSettingsSubsection(this);
 
         public override Drawable CreateIcon() => new SoundVisIcon();
     }
