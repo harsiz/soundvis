@@ -1,5 +1,7 @@
 using osu.Game.Beatmaps;
+using osu.Game.Scoring;
 using osu.Game.Screens.Play;
+using osu.Game.Screens.Ranking;
 
 namespace osu.Game.Rulesets.SoundVis.UI
 {
@@ -18,5 +20,8 @@ namespace osu.Game.Rulesets.SoundVis.UI
             => base.CreateGameplayClockContainer(beatmap, 0);
 
         protected override bool CheckModsAllowFailure() => false;
+
+        // ShowResults = false so this is never shown, but Player requires an implementation.
+        protected override ResultsScreen CreateResults(ScoreInfo score) => new SoloResultsScreen(score);
     }
 }
