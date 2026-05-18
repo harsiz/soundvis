@@ -70,7 +70,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
             // Find the alive hit object with the smallest absolute time offset
             DrawableSoundVisHitObject? best = null;
-            double bestOffset = DrawableSoundVisHitObject.MISS_WINDOW + 1;
+            double bestOffset = double.MaxValue;
 
             foreach (var drawable in HitObjectContainer.AliveObjects)
             {

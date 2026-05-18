@@ -19,7 +19,11 @@ namespace osu.Game.Rulesets.SoundVis.Mods
         public void ApplyToDrawableHitObject(DrawableHitObject drawable)
         {
             if (drawable is DrawableSoundVisHitObject dh)
+            {
                 dh.ApproachSpeedMultiplier = 2f;
+                dh.HitWindow = 50;
+                dh.MissWindow = 150;
+            }
         }
     }
 }

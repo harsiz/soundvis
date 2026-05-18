@@ -12,8 +12,10 @@ namespace osu.Game.Rulesets.SoundVis.Objects
     public partial class DrawableSoundVisHitObject : DrawableHitObject<SoundVisHitObject>
     {
         public const double APPROACH_TIME = 1000;
-        public const double HIT_WINDOW = 50;
-        public const double MISS_WINDOW = 150;
+
+        // Mods can tighten these; HHR restores the original strict values.
+        public double HitWindow { get; set; } = 120;
+        public double MissWindow { get; set; } = 300;
 
         private const float APPROACH_DIST = 550f;
         private const float LOGO_RADIUS = 80f;
@@ -108,11 +110,11 @@ namespace osu.Game.Rulesets.SoundVis.Objects
         {
             if (userTriggered)
             {
-                ApplyResult(Math.Abs(timeOffset) <= HIT_WINDOW ? HitResult.Great : HitResult.Miss);
+                ApplyResult(Math.Abs(timeOffset) <= HitWindow ? HitResult.Great : HitResult.Miss);
                 return;
             }
 
-            if (timeOffset > MISS_WINDOW)
+            if (timeOffset > MissWindow)
                 ApplyResult(HitResult.Miss);
         }
 
