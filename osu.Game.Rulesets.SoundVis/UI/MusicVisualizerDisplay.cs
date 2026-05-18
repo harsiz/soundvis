@@ -17,21 +17,18 @@ namespace osu.Game.Rulesets.SoundVis.UI
         private const float BAR_GAP = 2f;
         private const float SMOOTHING = 0.82f;
 
-        // Two explicit arrays — no casts, no tricks.
         private readonly Box[] rightBars = new Box[BAR_COUNT];
         private readonly Box[] leftBars = new Box[BAR_COUNT];
         private readonly float[] smoothed = new float[BAR_COUNT];
 
-        [Resolved]
-        private IBindable<WorkingBeatmap> beatmap { get; set; } = null!;
+        [Resolved(CanBeNull = true)]
+        private Bindable<WorkingBeatmap>? beatmap { get; set; }
 
         [BackgroundDependencyLoader]
         private void load()
         {
             RelativeSizeAxes = Axes.Both;
 
-            // Single container anchored to the bottom centre.
-            // Right bars go +X, left bars go -X from there.
             var barsContainer = new Container
             {
                 RelativeSizeAxes = Axes.Both,
@@ -77,7 +74,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
         {
             base.Update();
 
-            var track = beatmap.Value?.Track;
+            var track = beatmap?.Value?.Track;
             if (track == null) return;
 
             var amplitudes = track.CurrentAmplitudes.FrequencyAmplitudes.Span;

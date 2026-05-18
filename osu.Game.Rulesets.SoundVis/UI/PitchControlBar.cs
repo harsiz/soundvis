@@ -13,14 +13,8 @@ using osu.Game.Graphics.UserInterface;
 
 namespace osu.Game.Rulesets.SoundVis.UI
 {
-    /// <summary>
-    /// Bottom bar for pitch / speed control. Adjusts track frequency (vinyl-speed style).
-    /// Keeps a single BindableDouble registered on the track and updates it in place
-    /// rather than re-adding on every change.
-    /// </summary>
     public partial class PitchControlBar : CompositeDrawable
     {
-        // This bindable is what actually drives the audio engine.
         private readonly BindableDouble frequencyAdjust = new BindableDouble(1.0)
         {
             MinValue = 0.5,
@@ -31,8 +25,8 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
         private OsuSpriteText label = null!;
 
-        [Resolved]
-        private IBindable<WorkingBeatmap> beatmap { get; set; } = null!;
+        [Resolved(CanBeNull = true)]
+        private Bindable<WorkingBeatmap>? beatmap { get; set; }
 
         [BackgroundDependencyLoader]
         private void load(OsuColour colours)
@@ -112,8 +106,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
                 }
             };
 
-            // Register the adjustment once on the current track, then just update value.
-            beatmap.BindValueChanged(e =>
+            beatmap?.BindValueChanged(e =>
             {
                 e.OldValue?.Track.RemoveAdjustment(AdjustableProperty.Frequency, frequencyAdjust);
                 e.NewValue?.Track.AddAdjustment(AdjustableProperty.Frequency, frequencyAdjust);
@@ -129,7 +122,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
-            beatmap.Value?.Track.RemoveAdjustment(AdjustableProperty.Frequency, frequencyAdjust);
+            beatmap?.Value?.Track.RemoveAdjustment(AdjustableProperty.Frequency, frequencyAdjust);
         }
     }
 }

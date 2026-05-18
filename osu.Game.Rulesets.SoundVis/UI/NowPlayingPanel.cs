@@ -4,25 +4,21 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Textures;
 using osu.Game.Beatmaps;
 using osu.Game.Graphics;
-using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.Containers;
+using osu.Game.Graphics.Sprites;
 
 namespace osu.Game.Rulesets.SoundVis.UI
 {
-    /// <summary>
-    /// Top-left "now playing" card showing album art + song info.
-    /// </summary>
     public partial class NowPlayingPanel : CompositeDrawable
     {
         private TruncatingSpriteText titleText = null!;
         private TruncatingSpriteText artistText = null!;
         private Sprite albumArt = null!;
 
-        [Resolved]
-        private IBindable<WorkingBeatmap> beatmap { get; set; } = null!;
+        [Resolved(CanBeNull = true)]
+        private Bindable<WorkingBeatmap>? beatmap { get; set; }
 
         [BackgroundDependencyLoader]
         private void load()
@@ -93,20 +89,23 @@ namespace osu.Game.Rulesets.SoundVis.UI
                 }
             };
 
-            beatmap.BindValueChanged(updateBeatmap, true);
-        }
+            beatmap?.BindValueChanged(e =>
+            {
+                var b = e.NewValue;
+                if (b == null) return;
 
-        private void updateBeatmap(ValueChangedEvent<WorkingBeatmap> e)
-        {
-            var b = e.NewValue;
-            if (b == null) return;
+                titleText.Text = string.IsNullOrEmpty(b.Metadata.TitleUnicode)
+                    ? b.Metadata.Title
+                    : b.Metadata.TitleUnicode;
 
-            titleText.Text = b.Metadata.TitleUnicode.Length > 0 ? b.Metadata.TitleUnicode : b.Metadata.Title;
-            artistText.Text = b.Metadata.ArtistUnicode.Length > 0 ? b.Metadata.ArtistUnicode : b.Metadata.Artist;
+                artistText.Text = string.IsNullOrEmpty(b.Metadata.ArtistUnicode)
+                    ? b.Metadata.Artist
+                    : b.Metadata.ArtistUnicode;
 
-            var tex = b.GetBackground();
-            if (tex != null)
-                albumArt.Texture = tex;
+                var tex = b.GetBackground();
+                if (tex != null)
+                    albumArt.Texture = tex;
+            }, true);
         }
     }
 }
