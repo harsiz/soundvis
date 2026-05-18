@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+    <RootNamespace>osu.Game.Rulesets.SoundVis</RootNamespace>
+    <AssemblyName>osu.Game.Rulesets.SoundVis</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ppy.osu.Game" Version="2024.1001.0" />
+  </ItemGroup>
+</Project>
