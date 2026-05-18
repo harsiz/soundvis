@@ -78,7 +78,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
                                     Origin = Anchor.CentreLeft,
                                     Colour = colours.Pink,
                                 },
-                                new OsuSliderBar<double>
+                                new RoundedSliderBar<double>
                                 {
                                     Width = 260,
                                     Height = 20,

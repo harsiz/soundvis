@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Game.Beatmaps;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
+using osu.Game.Graphics.Containers;
 
 namespace osu.Game.Rulesets.SoundVis.UI
 {
@@ -16,8 +17,8 @@ namespace osu.Game.Rulesets.SoundVis.UI
     /// </summary>
     public partial class NowPlayingPanel : CompositeDrawable
     {
-        private OsuSpriteText titleText = null!;
-        private OsuSpriteText artistText = null!;
+        private TruncatingSpriteText titleText = null!;
+        private TruncatingSpriteText artistText = null!;
         private Sprite albumArt = null!;
 
         [Resolved]
@@ -73,18 +74,16 @@ namespace osu.Game.Rulesets.SoundVis.UI
                                             Font = OsuFont.GetFont(size: 9, weight: FontWeight.Bold),
                                             Colour = OsuColour.Gray(0.6f),
                                         },
-                                        titleText = new OsuSpriteText
+                                        titleText = new TruncatingSpriteText
                                         {
                                             Font = OsuFont.GetFont(size: 18, weight: FontWeight.Bold),
                                             MaxWidth = 320,
-                                            Truncate = true,
                                         },
-                                        artistText = new OsuSpriteText
+                                        artistText = new TruncatingSpriteText
                                         {
                                             Font = OsuFont.GetFont(size: 13),
                                             Colour = OsuColour.Gray(0.75f),
                                             MaxWidth = 320,
-                                            Truncate = true,
                                         },
                                     }
                                 }
