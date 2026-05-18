@@ -1,5 +1,6 @@
 using System;
 using osu.Framework.Graphics;
+using osu.Framework.Input.Events;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Scoring;
 using osuTK;
@@ -11,13 +12,30 @@ namespace osu.Game.Rulesets.SoundVis.Objects
         private const float HIT_WINDOW = 200f;
         public const float LOGO_RADIUS = 80f;
 
+        /// <summary>Fired when cursor enters/leaves this hit zone.</summary>
+        public event Action<bool>? HoverStateChanged;
+
+        private bool mouseIsOver;
+
         public DrawableSoundVisHitObject(SoundVisHitObject hitObject)
             : base(hitObject)
         {
-            // Invisible — the logo drawable is the visual. This handles hit detection only.
             Alpha = 0;
             Size = new Vector2(LOGO_RADIUS * 2);
             Origin = Anchor.Centre;
+        }
+
+        protected override bool OnHover(HoverEvent e)
+        {
+            mouseIsOver = true;
+            HoverStateChanged?.Invoke(true);
+            return true;
+        }
+
+        protected override void OnHoverLost(HoverLostEvent e)
+        {
+            mouseIsOver = false;
+            HoverStateChanged?.Invoke(false);
         }
 
         protected override void CheckForResult(bool userTriggered, double timeOffset)
@@ -31,7 +49,7 @@ namespace osu.Game.Rulesets.SoundVis.Objects
                 return;
             }
 
-            if (IsHovered)
+            if (mouseIsOver)
                 ApplyResult(HitResult.Great);
         }
 
@@ -42,9 +60,6 @@ namespace osu.Game.Rulesets.SoundVis.Objects
             return (local - centre).Length <= LOGO_RADIUS;
         }
 
-        protected override void UpdateHitStateTransforms(ArmedState state)
-        {
-            // no visual transition needed
-        }
+        protected override void UpdateHitStateTransforms(ArmedState state) { }
     }
 }

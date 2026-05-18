@@ -17,10 +17,6 @@ using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.SoundVis.UI
 {
-    /// <summary>
-    /// The osu! logo that moves around the playfield. Exposes MoveToNormalisedPosition
-    /// so the Playfield can drive it from hit object positions.
-    /// </summary>
     public partial class SoundVisLogoDisplay : BeatSyncedContainer
     {
         public const float LOGO_RADIUS = 80f;
@@ -29,6 +25,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
         private float speedMultiplier = 1f;
 
         private Container logoContainer = null!;
+        private Box hoverGlow = null!;
 
         [Resolved(CanBeNull = true)]
         private Bindable<WorkingBeatmap>? beatmap { get; set; }
@@ -36,9 +33,6 @@ namespace osu.Game.Rulesets.SoundVis.UI
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
-            // Start at playfield centre (in relative coords the anchor handles this)
-            Anchor = Anchor.Centre;
-            Origin = Anchor.Centre;
             Size = new Vector2(LOGO_RADIUS * 2);
 
             Sprite logoSprite;
@@ -61,6 +55,13 @@ namespace osu.Game.Rulesets.SoundVis.UI
                         Origin = Anchor.Centre,
                         FillMode = FillMode.Fit,
                         RelativeSizeAxes = Axes.Both,
+                    },
+                    hoverGlow = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Color4.White,
+                        Alpha = 0,
+                        Blending = BlendingParameters.Additive,
                     },
                 },
             };
@@ -97,20 +98,19 @@ namespace osu.Game.Rulesets.SoundVis.UI
             logoContainer.Rotation += baseRotationDegsPerMs * speedMultiplier * elapsed;
         }
 
-        /// <summary>
-        /// Glide the logo to a normalised [0,1] position within the parent's DrawSize.
-        /// Call this from the Playfield when a new hit object becomes active.
-        /// </summary>
-        public void MoveToNormalisedPosition(Vector2 normalised, double duration = 600)
+        public void SetHovered(bool hovered)
         {
-            // Convert from [0,1] to parent-relative offset from centre
-            var parent = Parent;
-            if (parent == null) return;
+            hoverGlow.FadeTo(hovered ? 0.35f : 0f, 80);
+        }
 
-            float px = (normalised.X - 0.5f) * parent.DrawWidth;
-            float py = (normalised.Y - 0.5f) * parent.DrawHeight;
-
-            this.MoveTo(new Vector2(px, py), duration, Easing.OutQuint);
+        /// <summary>
+        /// Glide the logo to a position in normalised [0,1] parent-relative space.
+        /// Requires the parent to have RelativeSizeAxes = Both and this drawable to
+        /// use RelativePositionAxes = Both with Anchor = TopLeft.
+        /// </summary>
+        public void MoveToNormalisedPosition(Vector2 normalised, double duration = 500)
+        {
+            this.MoveTo(normalised, duration, Easing.OutQuint);
         }
     }
 }
