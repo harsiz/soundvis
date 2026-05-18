@@ -112,11 +112,20 @@ namespace osu.Game.Rulesets.SoundVis.UI
                 e.NewValue?.Track.AddAdjustment(AdjustableProperty.Frequency, frequencyAdjust);
             }, true);
 
+
             frequencyAdjust.BindValueChanged(v =>
             {
                 string sign = v.NewValue >= 1.0 ? "+" : "";
                 label.Text = $"{sign}{(v.NewValue - 1.0) * 100:0}%";
             }, true);
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            // Belt-and-suspenders: apply the adjustment after the gameplay clock
+            // has finished setting up (it can reset track adjustments on Start).
+            beatmap?.Value?.Track.AddAdjustment(AdjustableProperty.Frequency, frequencyAdjust);
         }
 
         protected override void Dispose(bool isDisposing)

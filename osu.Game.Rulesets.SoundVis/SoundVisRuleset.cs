@@ -7,6 +7,7 @@ using osu.Game.Rulesets.SoundVis.Beatmaps;
 using osu.Game.Rulesets.SoundVis.UI;
 using osu.Game.Rulesets.UI;
 using osu.Framework.Input.Bindings;
+using osu.Game.Skinning;
 
 namespace osu.Game.Rulesets.SoundVis
 {
@@ -28,6 +29,9 @@ namespace osu.Game.Rulesets.SoundVis
         public override IEnumerable<Mod> GetModsFor(ModType type) => [];
 
         public override IEnumerable<KeyBinding> GetDefaultKeyBindings(int variant = 0) => [];
+
+        public override ISkinTransformer? CreateSkinTransformer(ISkin skin, IBeatmap beatmap)
+            => new SoundVisSkinTransformer(skin);
 
         public override Drawable CreateIcon() => new SoundVisIcon();
     }
