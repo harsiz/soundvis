@@ -13,6 +13,6 @@ namespace osu.Game.Rulesets.SoundVis.Objects
         // Used for scoring (longer jump = more points) and difficulty.
         public float JumpDistance { get; set; }
 
-        public override Judgement CreateJudgement() => new SoundVisJudgement(JumpDistance);
+        public override Judgement CreateJudgement() => new SoundVisJudgement();
     }
 }
