@@ -99,9 +99,10 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
             // Load the embedded logo texture from our own DLL resources
             var resources = new DllResourceStore(typeof(SoundVisRuleset).Assembly);
+            var byteStore = new NamespacedResourceStore<byte[]>(resources, "Resources");
             using var textureStore = new TextureStore(
                 host.Renderer,
-                new NamespacedResourceStore<byte[]>(resources, "Resources"));
+                new TextureLoaderStore(byteStore));
             logoSprite.Texture = textureStore.Get("Textures/lazer-logo");
 
             AddRangeInternal(new Drawable[]

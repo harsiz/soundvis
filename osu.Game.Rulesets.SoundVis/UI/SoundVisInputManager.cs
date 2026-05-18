@@ -8,7 +8,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
     public partial class SoundVisInputManager : RulesetInputManager<SoundVisAction>
     {
         public SoundVisInputManager(RulesetInfo? ruleset)
-            : base(ruleset, 0, SimultaneousBindingMode.Unique)
+            : base(ruleset!, 0, SimultaneousBindingMode.Unique)
         {
         }
     }

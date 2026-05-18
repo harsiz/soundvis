@@ -126,7 +126,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
             // Resolve the track — try WorkingBeatmap first, then MusicController as fallback.
             // We do this in LoadComplete (not load) so the gameplay clock has already
             // finished setting up and won't clobber our adjustment.
-            track = beatmap?.Value?.Track ?? musicController?.CurrentTrack;
+            track = (ITrack?)beatmap?.Value?.Track ?? (ITrack?)musicController?.CurrentTrack;
             track?.AddAdjustment(AdjustableProperty.Frequency, frequencyAdjust);
         }
 
