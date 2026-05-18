@@ -17,8 +17,11 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore
-        run: dotnet restore osu.Game.Rulesets.SoundVis/osu.Game.Rulesets.SoundVis.csproj
+      - name: Restore (always fresh — version is *)
+        run: dotnet restore osu.Game.Rulesets.SoundVis/osu.Game.Rulesets.SoundVis.csproj --no-cache
+
+      - name: Print resolved ppy.osu.Game version
+        run: dotnet list osu.Game.Rulesets.SoundVis/osu.Game.Rulesets.SoundVis.csproj package | grep ppy.osu.Game
 
       - name: Build
         run: dotnet build osu.Game.Rulesets.SoundVis/osu.Game.Rulesets.SoundVis.csproj -c Release --no-restore
