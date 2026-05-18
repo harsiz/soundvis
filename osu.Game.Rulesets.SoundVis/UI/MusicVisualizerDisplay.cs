@@ -5,43 +5,44 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
+using osu.Framework.IO.Stores;
+using osu.Framework.Platform;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
-using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
-using osu.Game.Graphics.Sprites;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.SoundVis.UI
 {
-    /// <summary>
-    /// Circular frequency-bar visualiser with a beat-synced spinning osu! cookie in the centre.
-    /// Bars radiate outward from the logo edge, one per frequency bin.
-    /// The logo pulses on each beat (heartbeat) and spins continuously at BPM speed.
-    /// </summary>
     public partial class MusicVisualizerDisplay : BeatSyncedContainer
     {
         private const int BAR_COUNT = 200;
-        private const float LOGO_RADIUS = 110f;
-        private const float MAX_BAR_LENGTH = 180f;
+        private const float LOGO_RADIUS = 120f;
+        private const float MAX_BAR_LENGTH = 200f;
         private const float BAR_WIDTH = 3f;
-        private const float SMOOTHING = 0.80f;
+        private const float SMOOTHING = 0.78f;
 
         private readonly Box[] bars = new Box[BAR_COUNT];
         private readonly float[] smoothed = new float[BAR_COUNT];
 
+        // Rotation state
+        private float baseRotationDegsPerMs = 360f / 4000f; // default: 120 BPM, 1 rev per 8 beats
+        private float speedMultiplier = 1f;
+
         private Container logoContainer = null!;
-        private float rotationDegreesPerMs = 360f / 2000f; // default: 120 BPM
 
         [Resolved(CanBeNull = true)]
         private Bindable<WorkingBeatmap>? beatmap { get; set; }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(GameHost host)
         {
             RelativeSizeAxes = Axes.Both;
 
+            // --- Frequency bars (radiate outward from logo perimeter) ---
             var barsLayer = new Container
             {
                 RelativeSizeAxes = Axes.Both,
@@ -61,13 +62,15 @@ namespace osu.Game.Rulesets.SoundVis.UI
                     Anchor = Anchor.Centre,
                     Origin = Anchor.BottomCentre,
                     Rotation = angleDeg,
-                    // Positioned at the logo's perimeter in the bar's outward direction
                     X = MathF.Sin(angleRad) * LOGO_RADIUS,
                     Y = -MathF.Cos(angleRad) * LOGO_RADIUS,
                 };
 
                 barsLayer.Add(bars[i]);
             }
+
+            // --- Logo (real osu! lazer logo image, circular masked) ---
+            Sprite logoSprite;
 
             logoContainer = new Container
             {
@@ -78,34 +81,28 @@ namespace osu.Game.Rulesets.SoundVis.UI
                 CornerRadius = LOGO_RADIUS,
                 Children = new Drawable[]
                 {
-                    // Pink gradient background — the "cookie"
+                    // Dark background behind the logo
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = new Color4(220, 80, 165, 255),
+                        Colour = new Color4(20, 20, 30, 255),
                     },
-                    // Inner glow ring
-                    new CircularContainer
+                    logoSprite = new Sprite
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Size = new Vector2(LOGO_RADIUS * 1.7f),
-                        Masking = true,
-                        BorderThickness = 4,
-                        BorderColour = new Color4(255, 180, 220, 120),
-                        Child = new Box { RelativeSizeAxes = Axes.Both, Alpha = 0 },
-                    },
-                    new OsuSpriteText
-                    {
-                        Text = "osu!",
-                        Font = OsuFont.GetFont(size: 50, weight: FontWeight.Bold),
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        Colour = Color4.White,
-                        Shadow = true,
+                        FillMode = FillMode.Fit,
+                        RelativeSizeAxes = Axes.Both,
                     },
                 },
             };
+
+            // Load the embedded logo texture from our own DLL resources
+            var resources = new DllResourceStore(typeof(SoundVisRuleset).Assembly);
+            using var textureStore = new TextureStore(
+                host.Renderer,
+                new NamespacedResourceStore<byte[]>(resources, "Resources"));
+            logoSprite.Texture = textureStore.Get("Textures/lazer-logo");
 
             AddRangeInternal(new Drawable[]
             {
@@ -118,23 +115,32 @@ namespace osu.Game.Rulesets.SoundVis.UI
         {
             base.OnNewBeat(beatIndex, timingPoint, effectPoint, amplitudes);
 
-            // Spin speed: one full revolution per 4 beats
-            rotationDegreesPerMs = (float)(360.0 / (timingPoint.BeatLength * 4));
+            // 1 revolution per 8 beats at the current BPM
+            baseRotationDegsPerMs = (float)(360.0 / (timingPoint.BeatLength * 8));
 
-            // Heartbeat pulse — quick scale up then decay back over the beat
+            // Kick the spin on every beat — it decays back in Update()
+            speedMultiplier = 2.8f;
+
+            // Heartbeat pulse — quick scale up, ease back over the beat
             logoContainer
-                .ScaleTo(1.10f, 60, Easing.OutQuint)
+                .ScaleTo(1.12f, 55, Easing.OutQuint)
                 .Then()
-                .ScaleTo(1f, timingPoint.BeatLength * 0.9, Easing.OutQuint);
+                .ScaleTo(1f, timingPoint.BeatLength * 0.88, Easing.OutQuint);
         }
 
         protected override void Update()
         {
             base.Update();
 
-            // Continuous spin at BPM-derived speed
-            logoContainer.Rotation += rotationDegreesPerMs * (float)Clock.ElapsedFrameTime;
+            float elapsed = (float)Clock.ElapsedFrameTime;
 
+            // Decay the kick multiplier back towards 1.0 linearly
+            // 0.003 units per ms → 1.8 units (kick amount) decays over ~600ms
+            speedMultiplier = MathF.Max(1f, speedMultiplier - 0.003f * elapsed);
+
+            logoContainer.Rotation += baseRotationDegsPerMs * speedMultiplier * elapsed;
+
+            // --- Update frequency bars ---
             var track = beatmap?.Value?.Track;
             if (track == null) return;
 
@@ -142,17 +148,15 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
             for (int i = 0; i < BAR_COUNT; i++)
             {
-                int bin = (int)((float)i / BAR_COUNT * amplitudes.Length);
-                float raw = bin < amplitudes.Length ? amplitudes[bin] : 0f;
+                int bin = Math.Clamp((int)((float)i / BAR_COUNT * amplitudes.Length), 0, amplitudes.Length - 1);
+                float raw = amplitudes[bin];
 
                 smoothed[i] = smoothed[i] * SMOOTHING + raw * (1f - SMOOTHING);
 
-                float barLength = 2f + smoothed[i] * MAX_BAR_LENGTH;
-                float hue = ((float)i / BAR_COUNT + (float)(Clock.CurrentTime / 12000.0)) % 1f;
-                var colour = Color4.FromHsv(new Vector4(hue, 0.65f + smoothed[i] * 0.35f, 1f, 1f));
+                bars[i].Height = 2f + smoothed[i] * MAX_BAR_LENGTH;
 
-                bars[i].Height = barLength;
-                bars[i].Colour = colour;
+                float hue = ((float)i / BAR_COUNT + (float)(Clock.CurrentTime / 12000.0)) % 1f;
+                bars[i].Colour = Color4.FromHsv(new Vector4(hue, 0.65f + smoothed[i] * 0.35f, 1f, 1f));
             }
         }
     }

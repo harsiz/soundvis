@@ -10,4 +10,8 @@
   <ItemGroup>
     <PackageReference Include="ppy.osu.Game" Version="*" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources/**" />
+  </ItemGroup>
 </Project>

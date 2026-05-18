@@ -1,5 +1,6 @@
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
+using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -10,6 +11,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
+using osu.Game.Overlays;
 
 namespace osu.Game.Rulesets.SoundVis.UI
 {
@@ -24,9 +26,13 @@ namespace osu.Game.Rulesets.SoundVis.UI
         };
 
         private OsuSpriteText label = null!;
+        private ITrack? track;
 
         [Resolved(CanBeNull = true)]
         private Bindable<WorkingBeatmap>? beatmap { get; set; }
+
+        [Resolved(CanBeNull = true)]
+        private MusicController? musicController { get; set; }
 
         [BackgroundDependencyLoader]
         private void load(OsuColour colours)
@@ -106,13 +112,6 @@ namespace osu.Game.Rulesets.SoundVis.UI
                 }
             };
 
-            beatmap?.BindValueChanged(e =>
-            {
-                e.OldValue?.Track.RemoveAdjustment(AdjustableProperty.Frequency, frequencyAdjust);
-                e.NewValue?.Track.AddAdjustment(AdjustableProperty.Frequency, frequencyAdjust);
-            }, true);
-
-
             frequencyAdjust.BindValueChanged(v =>
             {
                 string sign = v.NewValue >= 1.0 ? "+" : "";
@@ -123,15 +122,18 @@ namespace osu.Game.Rulesets.SoundVis.UI
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            // Belt-and-suspenders: apply the adjustment after the gameplay clock
-            // has finished setting up (it can reset track adjustments on Start).
-            beatmap?.Value?.Track.AddAdjustment(AdjustableProperty.Frequency, frequencyAdjust);
+
+            // Resolve the track — try WorkingBeatmap first, then MusicController as fallback.
+            // We do this in LoadComplete (not load) so the gameplay clock has already
+            // finished setting up and won't clobber our adjustment.
+            track = beatmap?.Value?.Track ?? musicController?.CurrentTrack;
+            track?.AddAdjustment(AdjustableProperty.Frequency, frequencyAdjust);
         }
 
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
-            beatmap?.Value?.Track.RemoveAdjustment(AdjustableProperty.Frequency, frequencyAdjust);
+            track?.RemoveAdjustment(AdjustableProperty.Frequency, frequencyAdjust);
         }
     }
 }
