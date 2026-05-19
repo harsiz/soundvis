@@ -14,7 +14,8 @@ namespace osu.Game.Rulesets.SoundVis
 {
     public class SoundVisRuleset : Ruleset
     {
-        public override string Description => "SoundVis";
+        // "soundvis" is the internal ID; "osu!vis" is the display name.
+        public override string Description => "osu!vis";
         public override string ShortName => "soundvis";
         public override string PlayingVerb => "vibing to";
 
@@ -36,9 +37,10 @@ namespace osu.Game.Rulesets.SoundVis
 
         public override IEnumerable<KeyBinding> GetDefaultKeyBindings(int variant = 0) => new[]
         {
-            new KeyBinding(InputKey.Z, SoundVisAction.Hit),
-            new KeyBinding(InputKey.X, SoundVisAction.Hit),
-            new KeyBinding(InputKey.Space, SoundVisAction.Hit),
+            new KeyBinding(InputKey.Q, SoundVisAction.TopLeft),
+            new KeyBinding(InputKey.E, SoundVisAction.TopRight),
+            new KeyBinding(InputKey.Z, SoundVisAction.BottomLeft),
+            new KeyBinding(InputKey.C, SoundVisAction.BottomRight),
         };
 
         public override ISkinTransformer? CreateSkinTransformer(ISkin skin, IBeatmap beatmap)

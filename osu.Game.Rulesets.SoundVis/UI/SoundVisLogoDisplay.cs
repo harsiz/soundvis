@@ -19,7 +19,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
 {
     public partial class SoundVisLogoDisplay : BeatSyncedContainer
     {
-        public const float LOGO_RADIUS = 80f;
+        public const float LOGO_RADIUS = 100f;
 
         private float baseRotationDegsPerMs = 360f / 4000f;
         private float speedMultiplier = 1f;
@@ -87,7 +87,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
             using var textureStore = new TextureStore(
                 host.Renderer,
                 new TextureLoaderStore(byteStore));
-            logoSprite.Texture = textureStore.Get("Textures/lazer-logo");
+            logoSprite.Texture = textureStore.Get("Textures/osuvis-logo");
 
             InternalChild = logoContainer;
         }

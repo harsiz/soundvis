@@ -32,10 +32,12 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
 
             lastEmittedTime = original.StartTime;
 
+            float angle = GetApproachAngle(original, beatmap);
             var obj = new SoundVisHitObject
             {
                 StartTime = original.StartTime,
-                ApproachAngle = GetApproachAngle(original, beatmap),
+                ApproachAngle = angle,
+                RequiredAction = SoundVisActionHelper.FromAngle(angle),
             };
             obj.Samples.Add(new HitSampleInfo(HitSampleInfo.HIT_NORMAL));
             yield return obj;

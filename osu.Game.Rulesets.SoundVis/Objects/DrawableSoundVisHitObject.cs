@@ -13,21 +13,16 @@ namespace osu.Game.Rulesets.SoundVis.Objects
     {
         public const double APPROACH_TIME = 1000;
 
-        // Mods can tighten these; HHR restores the original strict values.
+        private const float APPROACH_DIST = 550f;
+        private const float BAR_LENGTH = 220f;
+        private const float BAR_THICKNESS = 7f;
+
+        public float ApproachSpeedMultiplier { get; set; } = 1f;
         public double HitWindow { get; set; } = 120;
         public double MissWindow { get; set; } = 300;
 
-        private const float APPROACH_DIST = 550f;
-        private const float LOGO_RADIUS = 80f;
-        private const float BAR_LENGTH = 200f;
-        private const float BAR_THICKNESS = 7f;
-
-        // Container that holds glow + bar; we move this each frame
         private Container barGroup = null!;
         private Box bar = null!;
-
-        /// <summary>Set by HR mod — 1.5 means bars travel at 1.5× speed.</summary>
-        public float ApproachSpeedMultiplier { get; set; } = 1f;
 
         protected override double InitialLifetimeOffset => APPROACH_TIME + 300;
 
@@ -44,23 +39,25 @@ namespace osu.Game.Rulesets.SoundVis.Objects
             base.LoadComplete();
 
             float angle = HitObject.ApproachAngle;
+            var colour = HitObject.BarColour;
 
             barGroup = new Container
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
                 AutoSizeAxes = Axes.Both,
+                Rotation = angle,
                 Children = new Drawable[]
                 {
-                    // Outer glow
+                    // Soft additive glow
                     new Box
                     {
                         Width = BAR_LENGTH + 30,
                         Height = BAR_THICKNESS + 10,
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Colour = Color4.White,
-                        Alpha = 0.18f,
+                        Colour = colour,
+                        Alpha = 0.22f,
                         Blending = BlendingParameters.Additive,
                     },
                     // Core bar
@@ -70,10 +67,9 @@ namespace osu.Game.Rulesets.SoundVis.Objects
                         Height = BAR_THICKNESS,
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Colour = Color4.White,
+                        Colour = colour,
                     },
                 },
-                Rotation = angle,
             };
 
             AddInternal(barGroup);
@@ -86,7 +82,6 @@ namespace osu.Game.Rulesets.SoundVis.Objects
             double effectiveApproach = APPROACH_TIME / ApproachSpeedMultiplier;
             double timeUntilHit = HitObject.StartTime - Time.Current;
 
-            // Don't show the bar until it's within the effective approach window
             if (timeUntilHit > effectiveApproach)
             {
                 barGroup.Alpha = 0;
@@ -96,7 +91,7 @@ namespace osu.Game.Rulesets.SoundVis.Objects
             double progress = Math.Clamp(
                 (Time.Current - HitObject.StartTime + effectiveApproach) / effectiveApproach, 0, 1);
 
-            float dist = (float)(APPROACH_DIST - (APPROACH_DIST - LOGO_RADIUS) * progress);
+            float dist = (float)(APPROACH_DIST - (APPROACH_DIST - UI.SoundVisLogoDisplay.LOGO_RADIUS) * progress);
             float rad = HitObject.ApproachAngle * MathF.PI / 180f;
             barGroup.X = MathF.Sin(rad) * dist;
             barGroup.Y = -MathF.Cos(rad) * dist;
@@ -125,11 +120,8 @@ namespace osu.Game.Rulesets.SoundVis.Objects
                 case ArmedState.Hit:
                     this.FadeOut(150, Easing.OutQuint);
                     break;
-
                 case ArmedState.Miss:
-                    bar.FadeColour(Color4.Red, 60)
-                       .Then()
-                       .FadeOut(300);
+                    bar.FadeColour(Color4.Red, 60).Then().FadeOut(300);
                     break;
             }
         }
