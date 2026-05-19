@@ -24,6 +24,9 @@ namespace osu.Game.Rulesets.SoundVis.Objects
         /// <summary>When true (autoplay mod) the object triggers itself perfectly at StartTime.</summary>
         public bool AutoPlay { get; set; }
 
+        /// <summary>When true (HD mod) the bar fades away mid-approach.</summary>
+        public bool Hidden { get; set; }
+
         private Container barGroup = null!;
         private Box bar = null!;
 
@@ -99,7 +102,22 @@ namespace osu.Game.Rulesets.SoundVis.Objects
             barGroup.X = MathF.Sin(rad) * dist;
             barGroup.Y = -MathF.Cos(rad) * dist;
 
-            barGroup.Alpha = (float)Math.Clamp(progress * 4, 0, 1);
+            if (Hidden)
+            {
+                // Visible while approaching (0-40%), fades out through mid-flight (40-65%),
+                // then briefly flashes back just before the hit (85-100%) for a last-second cue.
+                float p = (float)progress;
+                float hiddenAlpha;
+                if      (p < 0.40f) hiddenAlpha = Math.Min(p / 0.10f, 1f);   // fade in
+                else if (p < 0.65f) hiddenAlpha = 1f - (p - 0.40f) / 0.25f;  // fade out
+                else if (p < 0.85f) hiddenAlpha = 0f;                          // invisible
+                else                hiddenAlpha = (p - 0.85f) / 0.15f;        // flash back
+                barGroup.Alpha = hiddenAlpha;
+            }
+            else
+            {
+                barGroup.Alpha = (float)Math.Clamp(progress * 4, 0, 1);
+            }
 
             // Autoplay: self-trigger at perfect timing (0ms offset → Great).
             if (AutoPlay && !Judged && Time.Current >= HitObject.StartTime)

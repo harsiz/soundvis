@@ -12,13 +12,13 @@ namespace osu.Game.Rulesets.SoundVis
 
     public static class SoundVisActionHelper
     {
-        // Q / E / Z / C — rough keyboard corners
+        // D / J / F / K default binds
         public static string GetKeyLabel(SoundVisAction action) => action switch
         {
-            SoundVisAction.TopLeft     => "Q",
-            SoundVisAction.TopRight    => "E",
-            SoundVisAction.BottomLeft  => "Z",
-            SoundVisAction.BottomRight => "C",
+            SoundVisAction.TopLeft     => "D",
+            SoundVisAction.TopRight    => "J",
+            SoundVisAction.BottomLeft  => "F",
+            SoundVisAction.BottomRight => "K",
             _                          => "?",
         };
 

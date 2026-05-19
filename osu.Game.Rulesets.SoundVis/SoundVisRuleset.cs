@@ -34,17 +34,17 @@ namespace osu.Game.Rulesets.SoundVis
         public override IEnumerable<Mod> GetModsFor(ModType type) => type switch
         {
             ModType.DifficultyReduction => new Mod[] { new SoundVisModNoFail() },
-            ModType.DifficultyIncrease  => new Mod[] { new SoundVisModHardRock(), new SoundVisModHarderHardRock() },
+            ModType.DifficultyIncrease  => new Mod[] { new SoundVisModHardRock(), new SoundVisModHarderHardRock(), new SoundVisModHidden() },
             ModType.Automation          => new Mod[] { new SoundVisModAutoplay() },
             _ => [],
         };
 
         public override IEnumerable<KeyBinding> GetDefaultKeyBindings(int variant = 0) => new[]
         {
-            new KeyBinding(InputKey.Q, SoundVisAction.TopLeft),
-            new KeyBinding(InputKey.E, SoundVisAction.TopRight),
-            new KeyBinding(InputKey.Z, SoundVisAction.BottomLeft),
-            new KeyBinding(InputKey.C, SoundVisAction.BottomRight),
+            new KeyBinding(InputKey.D, SoundVisAction.TopLeft),
+            new KeyBinding(InputKey.J, SoundVisAction.TopRight),
+            new KeyBinding(InputKey.F, SoundVisAction.BottomLeft),
+            new KeyBinding(InputKey.K, SoundVisAction.BottomRight),
         };
 
         public override ISkinTransformer? CreateSkinTransformer(ISkin skin, IBeatmap beatmap)

@@ -1,3 +1,4 @@
+using System;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
 using osu.Game.Rulesets.Mods;
@@ -13,6 +14,7 @@ namespace osu.Game.Rulesets.SoundVis.Mods
         public override string Acronym => "HHR";
         public override ModType Type => ModType.DifficultyIncrease;
         public override double ScoreMultiplier => 1.12;
+        public override Type[] IncompatibleMods => new[] { typeof(SoundVisModHardRock) };
         public override LocalisableString Description => "Approach bars move 2x faster. Good luck.";
         public override IconUsage? Icon => FontAwesome.Solid.AngleDoubleUp;
 
