@@ -8,6 +8,7 @@ using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.SoundVis.Objects;
 using osu.Game.Rulesets.SoundVis.Replays;
 using osu.Game.Rulesets.UI;
+using osu.Game.Scoring;
 using osu.Game.Screens.Play;
 
 namespace osu.Game.Rulesets.SoundVis.UI
@@ -30,5 +31,8 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
         protected override ReplayInputHandler CreateReplayInputHandler(Replay replay)
             => new SoundVisFramedReplayInputHandler(replay);
+
+        protected override ReplayRecorder CreateReplayRecorder(Score score)
+            => new SoundVisReplayRecorder(score);
     }
 }

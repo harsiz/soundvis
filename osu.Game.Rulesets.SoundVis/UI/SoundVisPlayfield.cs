@@ -170,12 +170,13 @@ namespace osu.Game.Rulesets.SoundVis.UI
                 return;
             }
 
-            // Smooth colour transition on action change
+            // Update border colour on action change.
+            // BorderColour is ColourInfo at runtime so TransformTo won't work;
+            // set it directly — it only fires on action change, not every frame.
             if (next.RequiredAction != lastIndicatorAction)
             {
                 lastIndicatorAction = next.RequiredAction;
-                Color4 c = SoundVisActionHelper.GetColour(next.RequiredAction);
-                nextNoteRing.TransformTo(nameof(nextNoteRing.BorderColour), c, 120, Easing.OutQuint);
+                nextNoteRing.BorderColour = SoundVisActionHelper.GetColour(next.RequiredAction);
             }
 
             // Alpha: fade in from 800 ms out, brighten in the last 150 ms
