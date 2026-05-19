@@ -28,8 +28,8 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
             double totalDuration = (objects[^1].StartTime - objects[0].StartTime) / 1000.0;
             double bps = totalDuration > 0 ? objects.Count / totalDuration : 1.0;
 
-            // Mod multipliers — approach speed mods make bars harder to react to.
-            // NF never changes star rating (standard osu! behaviour).
+            // clockRate already encodes DT/HT/NC speed (passed in by the framework).
+            // Approach-speed mods add extra difficulty on top.
             double modMultiplier = 1.0;
             foreach (var mod in mods)
             {
@@ -37,8 +37,15 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
                 if (mod is SoundVisModHardRock)        { modMultiplier = 1.4; break; }
             }
 
-            // Star rating scales with object density (BPS) + mod difficulty
-            double stars = Math.Round(Math.Clamp(Math.Log(1 + bps * 3) * 2.5 * clockRate * modMultiplier, 1.0, 10.0), 2);
+            // Power-law formula so density differences matter at all levels.
+            //   density = notes/sec adjusted for playback rate
+            //   stars   = 1.8 * density^1.1  (sub-linear growth at the low end,
+            //             steeper above ~4 BPS so hard maps get meaningfully higher stars)
+            // Cap raised to 50 — theoretical max with min-gap=60ms is ~16 BPS base,
+            // which gives ~38★; DT(1.5x) could push that to ~57★ → capped at 50.
+            double density = bps * clockRate * modMultiplier;
+            double stars = Math.Round(Math.Clamp(1.8 * Math.Pow(density, 1.1), 1.0, 50.0), 2);
+
             return new DifficultyAttributes(mods, stars);
         }
 
