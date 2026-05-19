@@ -12,6 +12,7 @@ using osu.Framework.IO.Stores;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Graphics.Containers;
+using osu.Game.Rulesets.SoundVis.Configuration;
 using osuTK;
 using osuTK.Graphics;
 
@@ -22,73 +23,90 @@ namespace osu.Game.Rulesets.SoundVis.UI
         public const float LOGO_RADIUS = 100f;
 
         private float baseRotationDegsPerMs = 360f / 4000f;
-        private float speedMultiplier = 1f;
-        private int spinDirection = 1;
+        private float speedMultiplier       = 1f;
+        private int   spinDirection         = 1;
 
         private TextureStore? textureStore;
-        private Container logoContainer = null!;
-        private Box hoverGlow = null!;
+        private Container     logoContainer = null!;
+        private Box           hoverGlow     = null!;
+
+        // Config bindables
+        private readonly BindableDouble spinSpeedConfig = new BindableDouble(1.0);
+        private readonly BindableBool   showLightUp     = new BindableBool(true);
 
         private static readonly Color4[] SparkColours =
         {
             new Color4(255, 100, 150, 255),
             new Color4(100, 200, 255, 255),
-            new Color4(255, 220, 80, 255),
+            new Color4(255, 220,  80, 255),
             new Color4(150, 255, 120, 255),
             new Color4(220, 100, 255, 255),
-            new Color4(255, 160, 60, 255),
+            new Color4(255, 160,  60, 255),
         };
 
         [Resolved(CanBeNull = true)]
         private Bindable<WorkingBeatmap>? beatmap { get; set; }
+
+        [Resolved(CanBeNull = true)]
+        private SoundVisRulesetConfigManager? rulesetConfig { get; set; }
 
         [BackgroundDependencyLoader]
         private void load(IRenderer renderer)
         {
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
-            Size = new Vector2(LOGO_RADIUS * 2);
+            Size   = new Vector2(LOGO_RADIUS * 2);
 
             Sprite logoSprite;
 
             logoContainer = new Container
             {
-                // Anchor + Origin = Centre so Rotation pivots around the logo's own centre
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                Size = new Vector2(LOGO_RADIUS * 2),
-                Masking = true,
+                Anchor       = Anchor.Centre,
+                Origin       = Anchor.Centre,
+                Size         = new Vector2(LOGO_RADIUS * 2),
+                Masking      = true,
                 CornerRadius = LOGO_RADIUS,
                 Children = new Drawable[]
                 {
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = new Color4(20, 20, 30, 255),
+                        Colour           = new Color4(20, 20, 30, 255),
                     },
                     logoSprite = new Sprite
                     {
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        FillMode = FillMode.Fit,
+                        Anchor           = Anchor.Centre,
+                        Origin           = Anchor.Centre,
+                        FillMode         = FillMode.Fit,
                         RelativeSizeAxes = Axes.Both,
                     },
                     hoverGlow = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.White,
-                        Alpha = 0,
-                        Blending = BlendingParameters.Additive,
+                        Colour           = Color4.White,
+                        Alpha            = 0,
+                        Blending         = BlendingParameters.Additive,
                     },
                 },
             };
 
             var resources = new DllResourceStore(typeof(SoundVisRuleset).Assembly);
             var byteStore = new NamespacedResourceStore<byte[]>(resources, "Resources");
-            textureStore = new TextureStore(renderer, new TextureLoaderStore(byteStore));
+            textureStore  = new TextureStore(renderer, new TextureLoaderStore(byteStore));
             logoSprite.Texture = textureStore.Get("Textures/osuvis-logo");
 
             InternalChild = logoContainer;
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            if (rulesetConfig != null)
+            {
+                rulesetConfig.BindWith(SoundVisRulesetSetting.SpinSpeedMultiplier, spinSpeedConfig);
+                rulesetConfig.BindWith(SoundVisRulesetSetting.ShowLightUp,         showLightUp);
+            }
         }
 
         protected override void OnNewBeat(int beatIndex, TimingControlPoint timingPoint, EffectControlPoint effectPoint, ChannelAmplitudes amplitudes)
@@ -110,28 +128,32 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
             float elapsed = (float)Clock.ElapsedFrameTime;
             speedMultiplier = MathF.Max(1f, speedMultiplier - 0.003f * elapsed);
-            logoContainer.Rotation += baseRotationDegsPerMs * speedMultiplier * spinDirection * elapsed;
+
+            // spinSpeedConfig.Value multiplies the user-chosen spin speed setting
+            float configSpeed = (float)spinSpeedConfig.Value;
+            logoContainer.Rotation += baseRotationDegsPerMs * speedMultiplier * spinDirection * elapsed * configSpeed;
         }
 
         public void ReverseSpinDirection()
         {
-            spinDirection *= -1;
+            spinDirection  *= -1;
             speedMultiplier = 3.5f;
 
-            // White flash
-            hoverGlow.FadeTo(0.65f, 20).Then().FadeOut(350, Easing.OutQuint);
+            // White flash — respects ShowLightUp setting
+            if (showLightUp.Value)
+                hoverGlow.FadeTo(0.65f, 20).Then().FadeOut(350, Easing.OutQuint);
 
             // Expanding ring
             var ring = new CircularContainer
             {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                Size = new Vector2(LOGO_RADIUS * 2),
-                BorderColour = Color4.White,
+                Anchor          = Anchor.Centre,
+                Origin          = Anchor.Centre,
+                Size            = new Vector2(LOGO_RADIUS * 2),
+                BorderColour    = Color4.White,
                 BorderThickness = 3f,
-                Masking = true,
-                Alpha = 0.9f,
-                Child = new Box { RelativeSizeAxes = Axes.Both, Alpha = 0, AlwaysPresent = true },
+                Masking         = true,
+                Alpha           = 0.9f,
+                Child           = new Box { RelativeSizeAxes = Axes.Both, Alpha = 0, AlwaysPresent = true },
             };
             AddInternal(ring);
             ring.ScaleTo(2.8f, 500, Easing.OutQuint)
@@ -143,16 +165,16 @@ namespace osu.Game.Rulesets.SoundVis.UI
             {
                 float angleDeg = i / 8f * 360f;
                 float angleRad = angleDeg * MathF.PI / 180f;
-                var colour = SparkColours[i % SparkColours.Length];
+                var   colour   = SparkColours[i % SparkColours.Length];
 
                 var spark = new Box
                 {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    Size = new Vector2(4, 14),
+                    Anchor   = Anchor.Centre,
+                    Origin   = Anchor.Centre,
+                    Size     = new Vector2(4, 14),
                     Rotation = angleDeg,
-                    Colour = colour,
-                    Alpha = 1f,
+                    Colour   = colour,
+                    Alpha    = 1f,
                 };
                 AddInternal(spark);
 
