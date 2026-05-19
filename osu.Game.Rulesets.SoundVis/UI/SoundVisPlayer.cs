@@ -10,8 +10,8 @@ namespace osu.Game.Rulesets.SoundVis.UI
         public SoundVisPlayer()
             : base(new PlayerConfiguration
             {
-                AllowRestart = false,
-                ShowResults = false,
+                AllowRestart = true,
+                ShowResults = true,
             })
         {
         }
@@ -21,7 +21,6 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
         protected override bool CheckModsAllowFailure() => false;
 
-        // ShowResults = false so this is never shown, but Player requires an implementation.
         protected override ResultsScreen CreateResults(ScoreInfo score) => new SoloResultsScreen(score);
     }
 }

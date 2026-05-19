@@ -9,6 +9,8 @@ using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.SoundVis.Beatmaps;
 using osu.Game.Rulesets.SoundVis.Configuration;
+using osu.Game.Rulesets.Edit;
+using osu.Game.Rulesets.SoundVis.Edit;
 using osu.Game.Rulesets.SoundVis.Mods;
 using osu.Game.Rulesets.SoundVis.UI;
 using osu.Game.Rulesets.UI;
@@ -56,6 +58,8 @@ namespace osu.Game.Rulesets.SoundVis
 
         public override IRulesetConfigManager CreateConfig(SettingsStore? settings)
             => new SoundVisRulesetConfigManager(settings, RulesetInfo);
+
+        public override HitObjectComposer CreateHitObjectComposer() => new SoundVisHitObjectComposer(this);
 
         public override Drawable CreateIcon() => new SoundVisIcon();
     }

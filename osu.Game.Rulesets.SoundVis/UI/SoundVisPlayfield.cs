@@ -135,7 +135,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
                 dh.OnNewResult += (_, result) =>
                 {
-                    if (result.Type == Scoring.HitResult.Great)
+                    if (result.IsHit)
                         logoDisplay.ReverseSpinDirection();
                 };
             }
