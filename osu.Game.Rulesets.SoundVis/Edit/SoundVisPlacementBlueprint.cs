@@ -1,8 +1,10 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input.Events;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.SoundVis.Objects;
 using osuTK;
+using osuTK.Input;
 
 namespace osu.Game.Rulesets.SoundVis.Edit
 {
@@ -42,13 +44,17 @@ namespace osu.Game.Rulesets.SoundVis.Edit
             return new SnapResult(screenSpacePosition, time);
         }
 
-        protected override void BeginPlacement(bool commitStart)
+        // Single-click placement: commit the note immediately on left mouse down.
+        // Override OnMouseDown directly (same pattern as osu!std circle placement)
+        // rather than BeginPlacement, so the framework routes the event reliably.
+        protected override bool OnMouseDown(MouseDownEvent e)
         {
-            base.BeginPlacement(commitStart);
+            if (e.Button != MouseButton.Left)
+                return false;
 
-            // One-click tool: commit as soon as the user clicks
-            if (commitStart)
-                EndPlacement(true);
+            BeginPlacement(true);  // sets PlacementActive = Active
+            EndPlacement(true);    // commits the note, sets PlacementActive = Finished
+            return true;
         }
 
         /// <summary>Centre angle (degrees, 0=up, clockwise) for each quadrant.</summary>
