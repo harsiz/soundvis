@@ -1,11 +1,12 @@
 using System.Collections.Generic;
-using osu.Game.Replays;
+using osu.Game.Rulesets.Replays;
 
 namespace osu.Game.Rulesets.SoundVis.Replays
 {
+    // ReplayFrame must inherit from osu.Game.Rulesets.Replays.ReplayFrame
+    // so it satisfies the FramedReplayInputHandler<TFrame> constraint.
     public class SoundVisReplayFrame : ReplayFrame
     {
-        /// <summary>All actions that are held down at this point in time.</summary>
         public List<SoundVisAction> Actions { get; } = new List<SoundVisAction>();
 
         public SoundVisReplayFrame(double time) : base(time) { }

@@ -21,6 +21,9 @@ namespace osu.Game.Rulesets.SoundVis.Objects
         public double HitWindow { get; set; } = 120;
         public double MissWindow { get; set; } = 300;
 
+        /// <summary>When true (autoplay mod) the object triggers itself perfectly at StartTime.</summary>
+        public bool AutoPlay { get; set; }
+
         private Container barGroup = null!;
         private Box bar = null!;
 
@@ -97,6 +100,10 @@ namespace osu.Game.Rulesets.SoundVis.Objects
             barGroup.Y = -MathF.Cos(rad) * dist;
 
             barGroup.Alpha = (float)Math.Clamp(progress * 4, 0, 1);
+
+            // Autoplay: self-trigger at perfect timing (0ms offset → Great).
+            if (AutoPlay && !Judged && Time.Current >= HitObject.StartTime)
+                TriggerResult();
         }
 
         public void TriggerResult() => UpdateResult(true);
