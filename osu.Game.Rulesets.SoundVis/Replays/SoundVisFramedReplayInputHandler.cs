@@ -11,7 +11,7 @@ namespace osu.Game.Rulesets.SoundVis.Replays
 
         protected override bool IsImportant(SoundVisReplayFrame frame) => frame.Actions.Count > 0;
 
-        public override void CollectReplayInputs(List<IInput> inputs)
+        protected override void CollectReplayInputs(List<IInput> inputs)
         {
             inputs.Add(new ReplayState<SoundVisAction>
             {
