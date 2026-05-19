@@ -11,24 +11,26 @@ using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.SoundVis.UI
 {
-    /// <summary>
-    /// The ruleset icon shown in osu! UI (song select, score results, mod overlay, etc.).
-    /// Renders the osuvis-logo.png texture clipped to a circle.
-    /// </summary>
     public partial class SoundVisIcon : CompositeDrawable
     {
-        [BackgroundDependencyLoader]
-        private void load(GameHost host)
+        // Kept as a field so the store (and its GPU textures) are not disposed
+        // while the Sprite still references them.
+        private TextureStore? textureStore;
+
+        [BackgroundDependencyLoader(permitNulls: true)]
+        private void load(GameHost? host)
         {
             AutoSizeAxes = Axes.Both;
 
-            var resources = new DllResourceStore(typeof(SoundVisRuleset).Assembly);
-            var byteStore = new NamespacedResourceStore<byte[]>(resources, "Resources");
-            using var textureStore = new TextureStore(
-                host.Renderer,
-                new TextureLoaderStore(byteStore));
+            Texture? texture = null;
 
-            var texture = textureStore.Get("Textures/osuvis-logo");
+            if (host != null)
+            {
+                var resources = new DllResourceStore(typeof(SoundVisRuleset).Assembly);
+                var byteStore = new NamespacedResourceStore<byte[]>(resources, "Resources");
+                textureStore = new TextureStore(host.Renderer, new TextureLoaderStore(byteStore));
+                texture = textureStore.Get("Textures/osuvis-logo");
+            }
 
             if (texture != null)
             {
@@ -48,7 +50,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
             }
             else
             {
-                // Fallback: plain coloured circle so it never shows blank
+                // Fallback: solid pink circle so there is always something visible.
                 InternalChild = new CircularContainer
                 {
                     Size = new Vector2(20),
@@ -60,6 +62,12 @@ namespace osu.Game.Rulesets.SoundVis.UI
                     },
                 };
             }
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            textureStore?.Dispose();
         }
     }
 }

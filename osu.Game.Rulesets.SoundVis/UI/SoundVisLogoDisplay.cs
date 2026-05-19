@@ -25,6 +25,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
         private float speedMultiplier = 1f;
         private int spinDirection = 1;
 
+        private TextureStore? textureStore;
         private Container logoContainer = null!;
         private Box hoverGlow = null!;
 
@@ -84,9 +85,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
             var resources = new DllResourceStore(typeof(SoundVisRuleset).Assembly);
             var byteStore = new NamespacedResourceStore<byte[]>(resources, "Resources");
-            using var textureStore = new TextureStore(
-                host.Renderer,
-                new TextureLoaderStore(byteStore));
+            textureStore = new TextureStore(host.Renderer, new TextureLoaderStore(byteStore));
             logoSprite.Texture = textureStore.Get("Textures/osuvis-logo");
 
             InternalChild = logoContainer;
@@ -170,6 +169,12 @@ namespace osu.Game.Rulesets.SoundVis.UI
         public void SetHovered(bool hovered)
         {
             hoverGlow.FadeTo(hovered ? 0.3f : 0f, 80);
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            textureStore?.Dispose();
         }
     }
 }
