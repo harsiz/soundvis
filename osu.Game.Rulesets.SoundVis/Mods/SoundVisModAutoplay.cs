@@ -22,6 +22,6 @@ namespace osu.Game.Rulesets.SoundVis.Mods
 
         // ModAutoplay is abstract; return empty replay data so osu! doesn't error.
         public override ModReplayData CreateReplayData(IBeatmap beatmap, IReadOnlyList<Mod> mods)
-            => new ModReplayData(new Replay(), new ModCreatedUser("osu!vis"));
+            => new ModReplayData(new Replay(), new ModCreatedUser { Username = "osu!vis" });
     }
 }

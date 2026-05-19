@@ -1,4 +1,5 @@
 using System;
+using osu.Game.Rulesets;
 using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
@@ -7,6 +8,8 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
 {
     public class SoundVisPerformanceCalculator : PerformanceCalculator
     {
+        public SoundVisPerformanceCalculator(Ruleset ruleset) : base(ruleset) { }
+
         // The abstract method osu! lazer actually exposes is CreatePerformanceAttributes.
         protected override PerformanceAttributes CreatePerformanceAttributes(ScoreInfo score, DifficultyAttributes attributes)
         {

@@ -29,7 +29,7 @@ namespace osu.Game.Rulesets.SoundVis
             => new SoundVisDifficultyCalculator(RulesetInfo, beatmap);
 
         public override PerformanceCalculator CreatePerformanceCalculator()
-            => new SoundVisPerformanceCalculator();
+            => new SoundVisPerformanceCalculator(this);
 
         public override IEnumerable<Mod> GetModsFor(ModType type) => type switch
         {
