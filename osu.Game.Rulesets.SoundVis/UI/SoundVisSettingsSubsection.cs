@@ -1,4 +1,5 @@
 using osu.Framework.Allocation;
+using osu.Framework.Graphics;
 using osu.Framework.Localisation;
 using osu.Game.Overlays.Settings;
 using osu.Game.Rulesets.SoundVis.Configuration;
@@ -19,7 +20,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
         {
             var config = (SoundVisRulesetConfigManager)Config;
 
-            Children = new[]
+            Children = new Drawable[]
             {
                 new SettingsCheckbox
                 {

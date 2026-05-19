@@ -1,5 +1,6 @@
 using osu.Game.Configuration;
 using osu.Game.Rulesets;
+using osu.Game.Rulesets.Configuration;
 
 namespace osu.Game.Rulesets.SoundVis.Configuration
 {

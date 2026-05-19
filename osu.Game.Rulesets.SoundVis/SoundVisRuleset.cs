@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using osu.Framework.Graphics;
+using osu.Framework.Input.Bindings;
 using osu.Game.Beatmaps;
 using osu.Game.Configuration;
-using osu.Game.Overlays.Settings;
+using osu.Game.Rulesets;
+using osu.Game.Rulesets.Configuration;
 using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.SoundVis.Beatmaps;
@@ -10,7 +12,6 @@ using osu.Game.Rulesets.SoundVis.Configuration;
 using osu.Game.Rulesets.SoundVis.Mods;
 using osu.Game.Rulesets.SoundVis.UI;
 using osu.Game.Rulesets.UI;
-using osu.Framework.Input.Bindings;
 using osu.Game.Skinning;
 
 namespace osu.Game.Rulesets.SoundVis
@@ -55,9 +56,6 @@ namespace osu.Game.Rulesets.SoundVis
 
         public override IRulesetConfigManager CreateConfig(SettingsStore? settings)
             => new SoundVisRulesetConfigManager(settings, RulesetInfo);
-
-        public override SettingsSubsection CreateSettingsSubsection()
-            => new SoundVisSettingsSubsection(this);
 
         public override Drawable CreateIcon() => new SoundVisIcon();
     }
