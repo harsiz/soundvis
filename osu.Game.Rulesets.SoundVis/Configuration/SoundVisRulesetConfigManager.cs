@@ -13,10 +13,12 @@ namespace osu.Game.Rulesets.SoundVis.Configuration
 
         protected override void InitialiseDefaults()
         {
-            SetDefault(SoundVisRulesetSetting.ShowColors,          true);
-            SetDefault(SoundVisRulesetSetting.ShowLightUp,         true);
-            SetDefault(SoundVisRulesetSetting.SpinSpeedMultiplier, 1.0, 0.5, 3.0, 0.05);
-            SetDefault(SoundVisRulesetSetting.BarGlowIntensity,    0.5, 0.0, 1.0, 0.05);
+            SetDefault(SoundVisRulesetSetting.ShowColors,            true);
+            SetDefault(SoundVisRulesetSetting.ShowLightUp,           true);
+            SetDefault(SoundVisRulesetSetting.SpinSpeedMultiplier,   1.0, 0.5, 3.0, 0.05);
+            SetDefault(SoundVisRulesetSetting.BarGlowIntensity,      0.5, 0.0, 1.0, 0.05);
+            SetDefault(SoundVisRulesetSetting.ShowNextNoteIndicator, true);
+            SetDefault(SoundVisRulesetSetting.ShowBeatFlashes,       true);
         }
     }
 }

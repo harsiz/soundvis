@@ -13,5 +13,11 @@ namespace osu.Game.Rulesets.SoundVis
 
         /// <summary>Opacity of the soft additive glow around each approach bar (0 – 1).</summary>
         BarGlowIntensity,
+
+        /// <summary>Show a coloured ring around the logo indicating which key to press next.</summary>
+        ShowNextNoteIndicator,
+
+        /// <summary>Flash the screen edges on loud / kiai beats.</summary>
+        ShowBeatFlashes,
     }
 }

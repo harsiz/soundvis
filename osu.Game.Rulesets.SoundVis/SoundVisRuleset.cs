@@ -12,6 +12,7 @@ using osu.Game.Rulesets.SoundVis.Configuration;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.SoundVis.Edit;
 using osu.Game.Rulesets.SoundVis.Mods;
+using osu.Game.Overlays.Settings;
 using osu.Game.Rulesets.SoundVis.UI;
 using osu.Game.Rulesets.UI;
 using osu.Game.Skinning;
@@ -58,6 +59,10 @@ namespace osu.Game.Rulesets.SoundVis
 
         public override IRulesetConfigManager CreateConfig(SettingsStore? settings)
             => new SoundVisRulesetConfigManager(settings, RulesetInfo);
+
+        // Wires up the settings panel under Settings > Rulesets > osu!vis
+        public override RulesetSettingsSubsection CreateSettings()
+            => new SoundVisSettingsSubsection(this);
 
         public override HitObjectComposer CreateHitObjectComposer() => new SoundVisHitObjectComposer(this);
 

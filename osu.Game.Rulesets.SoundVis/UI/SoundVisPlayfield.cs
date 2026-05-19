@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -9,6 +10,7 @@ using osu.Framework.Input.Events;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Rulesets.Objects.Drawables;
+using osu.Game.Rulesets.SoundVis.Configuration;
 using osu.Game.Rulesets.SoundVis.Objects;
 using osu.Game.Rulesets.UI;
 using osuTK;
@@ -21,23 +23,38 @@ namespace osu.Game.Rulesets.SoundVis.UI
         private SoundVisLogoDisplay logoDisplay = null!;
         private readonly Dictionary<SoundVisAction, CircularContainer> cornerIndicators = new();
 
+        // ── Next-note indicator ───────────────────────────────────────────────────
+        private CircularContainer nextNoteRing = null!;
+        private SoundVisAction?   lastIndicatorAction;
+        private readonly BindableBool showNextNote = new BindableBool(true);
+
+        [Resolved(CanBeNull = true)]
+        private SoundVisRulesetConfigManager? rulesetConfig { get; set; }
+
         [BackgroundDependencyLoader]
         private void load()
         {
             RelativeSizeAxes = Axes.Both;
 
-            // ── Background (bars + now playing) ──────────────────────────────────
+            // ── Background beat flashes (behind everything) ───────────────────────
+            AddInternal(new BeatFlashDisplay
+            {
+                RelativeSizeAxes = Axes.Both,
+                Depth            = 2,
+            });
+
+            // ── Background (freq bars + now-playing) ──────────────────────────────
             AddInternal(new Container
             {
                 RelativeSizeAxes = Axes.Both,
-                Depth = 1,
+                Depth            = 1,
                 Children = new Drawable[]
                 {
                     new MusicVisualizerDisplay
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
+                        Anchor           = Anchor.Centre,
+                        Origin           = Anchor.Centre,
                     },
                     new NowPlayingPanel
                     {
@@ -45,10 +62,26 @@ namespace osu.Game.Rulesets.SoundVis.UI
                         Origin = Anchor.TopLeft,
                         Margin = new MarginPadding(20),
                     },
-                }
+                },
             });
 
-            // ── Logo ─────────────────────────────────────────────────────────────
+            // ── Next-note indicator ring (sits just behind the logo) ──────────────
+            // Transparent interior + coloured border that changes with the next note.
+            nextNoteRing = new CircularContainer
+            {
+                Size            = new Vector2(SoundVisLogoDisplay.LOGO_RADIUS * 2 + 28f),
+                Anchor          = Anchor.Centre,
+                Origin          = Anchor.Centre,
+                Masking         = true,
+                BorderThickness = 5f,
+                BorderColour    = Color4.White,
+                Alpha           = 0f,
+                Depth           = 0.5f,
+                Child           = new Box { RelativeSizeAxes = Axes.Both, Alpha = 0, AlwaysPresent = true },
+            };
+            AddInternal(nextNoteRing);
+
+            // ── Logo ──────────────────────────────────────────────────────────────
             logoDisplay = new SoundVisLogoDisplay
             {
                 Anchor = Anchor.Centre,
@@ -56,12 +89,12 @@ namespace osu.Game.Rulesets.SoundVis.UI
             };
             AddInternal(logoDisplay);
 
-            // ── Corner key-press feedback (around the logo) ───────────────────────
-            float ind = SoundVisLogoDisplay.LOGO_RADIUS + 28f;
+            // ── Corner key-press feedback dots ────────────────────────────────────
+            float ind         = SoundVisLogoDisplay.LOGO_RADIUS + 28f;
             var feedbackLayer = new Container
             {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
+                Anchor       = Anchor.Centre,
+                Origin       = Anchor.Centre,
                 AutoSizeAxes = Axes.Both,
             };
 
@@ -69,20 +102,20 @@ namespace osu.Game.Rulesets.SoundVis.UI
             {
                 var dot = new CircularContainer
                 {
-                    Size = new Vector2(18),
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    Position = CornerOffset(action, ind),
-                    Masking = true,
-                    Alpha = 0,
+                    Size         = new Vector2(18),
+                    Anchor       = Anchor.Centre,
+                    Origin       = Anchor.Centre,
+                    Position     = CornerOffset(action, ind),
+                    Masking      = true,
+                    Alpha        = 0,
                     Children = new Drawable[]
                     {
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = SoundVisActionHelper.GetColour(action),
-                        }
-                    }
+                            Colour           = SoundVisActionHelper.GetColour(action),
+                        },
+                    },
                 };
                 cornerIndicators[action] = dot;
                 feedbackLayer.Add(dot);
@@ -93,7 +126,71 @@ namespace osu.Game.Rulesets.SoundVis.UI
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
+            rulesetConfig?.BindWith(SoundVisRulesetSetting.ShowNextNoteIndicator, showNextNote);
+            showNextNote.BindValueChanged(v => { if (!v.NewValue) nextNoteRing.FadeOut(200); }, true);
+
             ShowStartOverlay();
+        }
+
+        // ── Update: drive the next-note indicator ─────────────────────────────────
+
+        protected override void Update()
+        {
+            base.Update();
+            UpdateNextNoteIndicator();
+        }
+
+        private void UpdateNextNoteIndicator()
+        {
+            if (!showNextNote.Value)
+                return;
+
+            // Find the soonest upcoming unjudged note
+            SoundVisHitObject? next = null;
+            double             bestTimeToHit = double.MaxValue;
+
+            foreach (var drawable in HitObjectContainer.AliveObjects)
+            {
+                if (drawable is DrawableSoundVisHitObject dh && !dh.Judged)
+                {
+                    double timeToHit = dh.HitObject.StartTime - Time.Current;
+                    if (timeToHit > -80 && timeToHit < bestTimeToHit)
+                    {
+                        bestTimeToHit = timeToHit;
+                        next          = dh.HitObject;
+                    }
+                }
+            }
+
+            if (next == null)
+            {
+                nextNoteRing.FadeOut(250, Easing.OutQuint);
+                lastIndicatorAction = null;
+                return;
+            }
+
+            // Smooth colour transition on action change
+            if (next.RequiredAction != lastIndicatorAction)
+            {
+                lastIndicatorAction = next.RequiredAction;
+                Color4 c = SoundVisActionHelper.GetColour(next.RequiredAction);
+                nextNoteRing.TransformTo(nameof(nextNoteRing.BorderColour), c, 120, Easing.OutQuint);
+            }
+
+            // Alpha: fade in from 800 ms out, brighten in the last 150 ms
+            const double FADE_WINDOW  = 800;
+            const double PULSE_WINDOW = 150;
+
+            float baseAlpha  = (float)Math.Clamp((FADE_WINDOW - bestTimeToHit) / FADE_WINDOW, 0, 1);
+            float pulseBoost = bestTimeToHit < PULSE_WINDOW
+                ? (float)Math.Pow(1.0 - bestTimeToHit / PULSE_WINDOW, 1.5) * 0.55f
+                : 0f;
+
+            nextNoteRing.Alpha = 0.25f * baseAlpha + pulseBoost;
+
+            // Ring thickness: grows as the note approaches
+            nextNoteRing.BorderThickness = 4f + 5f * (float)Math.Clamp(1.0 - bestTimeToHit / 400.0, 0, 1);
         }
 
         // ── Key assignment overlay shown at map start ─────────────────────────────
@@ -103,10 +200,9 @@ namespace osu.Game.Rulesets.SoundVis.UI
             var overlay = new Container
             {
                 RelativeSizeAxes = Axes.Both,
-                Alpha = 0,
+                Alpha            = 0,
             };
 
-            // Place a label at each screen corner
             foreach (SoundVisAction action in Enum.GetValues<SoundVisAction>())
             {
                 var anchor = CornerAnchor(action);
@@ -145,9 +241,8 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
         public bool OnPressed(KeyBindingPressEvent<SoundVisAction> e)
         {
-            // Find the alive hit object matching this action with the smallest time offset
-            DrawableSoundVisHitObject? best = null;
-            double bestOffset = double.MaxValue;
+            DrawableSoundVisHitObject? best       = null;
+            double                     bestOffset = double.MaxValue;
 
             foreach (var drawable in HitObjectContainer.AliveObjects)
             {
@@ -159,18 +254,14 @@ namespace osu.Game.Rulesets.SoundVis.UI
                     if (offset < bestOffset)
                     {
                         bestOffset = offset;
-                        best = dh;
+                        best       = dh;
                     }
                 }
             }
 
-            bool isHit = best != null;
-            FlashCorner(e.Action, isHit);
-
-            if (isHit)
-                best!.TriggerResult();
-
-            return true; // always consume so osu! doesn't route it elsewhere
+            FlashCorner(e.Action, best != null);
+            best?.TriggerResult();
+            return true;
         }
 
         public void OnReleased(KeyBindingReleaseEvent<SoundVisAction> e) { }
@@ -186,7 +277,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
             dot.ScaleTo(1.4f, 30, Easing.OutQuint)
                .FadeTo(0.95f, 20)
                .Then()
-               .ScaleTo(1f, 250, Easing.OutQuint)
+               .ScaleTo(1f,   250, Easing.OutQuint)
                .FadeOut(250);
         }
 
@@ -208,7 +299,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
             _                          => Anchor.Centre,
         };
 
-        // ── Inner drawable: corner key label ──────────────────────────────────────
+        // ── Inner drawable: corner key label shown at map start ───────────────────
 
         private partial class KeyCornerLabel : FillFlowContainer
         {
@@ -216,38 +307,36 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
             public KeyCornerLabel(SoundVisAction action)
             {
-                this.action = action;
+                this.action  = action;
                 AutoSizeAxes = Axes.Both;
-                Direction = FillDirection.Vertical;
-                Spacing = new Vector2(0, 4);
+                Direction    = FillDirection.Vertical;
+                Spacing      = new Vector2(0, 4);
             }
 
             [BackgroundDependencyLoader]
             private void load()
             {
-                var colour = SoundVisActionHelper.GetColour(action);
-                string key = SoundVisActionHelper.GetKeyLabel(action);
+                var    colour = SoundVisActionHelper.GetColour(action);
+                string key    = SoundVisActionHelper.GetKeyLabel(action);
 
                 Children = new Drawable[]
                 {
-                    // Coloured square swatch
                     new Container
                     {
-                        Size = new Vector2(36),
-                        Anchor = Anchor.TopCentre,
-                        Origin = Anchor.TopCentre,
-                        Masking = true,
+                        Size         = new Vector2(36),
+                        Anchor       = Anchor.TopCentre,
+                        Origin       = Anchor.TopCentre,
+                        Masking      = true,
                         CornerRadius = 6,
                         Children = new Drawable[]
                         {
                             new Box { RelativeSizeAxes = Axes.Both, Colour = colour, Alpha = 0.85f },
-                        }
+                        },
                     },
-                    // Key label
                     new OsuSpriteText
                     {
-                        Text = key,
-                        Font = OsuFont.GetFont(size: 22, weight: FontWeight.Bold),
+                        Text   = key,
+                        Font   = OsuFont.GetFont(size: 22, weight: FontWeight.Bold),
                         Colour = colour,
                         Anchor = Anchor.TopCentre,
                         Origin = Anchor.TopCentre,
