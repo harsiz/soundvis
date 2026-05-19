@@ -1,11 +1,11 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
-using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
 
@@ -13,55 +13,43 @@ namespace osu.Game.Rulesets.SoundVis.UI
 {
     public partial class SoundVisIcon : CompositeDrawable
     {
-        // Kept as a field so the store (and its GPU textures) are not disposed
-        // while the Sprite still references them.
+        // Kept as a field so textures aren't freed while the Sprite still references them.
         private TextureStore? textureStore;
 
-        [BackgroundDependencyLoader(permitNulls: true)]
-        private void load(GameHost? host)
+        public SoundVisIcon()
         {
-            AutoSizeAxes = Axes.Both;
+            // Explicit size so the icon is always 20x20 even if children fail to load.
+            Size = new Vector2(20);
+        }
 
-            Texture? texture = null;
+        [BackgroundDependencyLoader]
+        private void load(IRenderer renderer)
+        {
+            var resources = new DllResourceStore(typeof(SoundVisRuleset).Assembly);
+            var byteStore  = new NamespacedResourceStore<byte[]>(resources, "Resources");
+            textureStore   = new TextureStore(renderer, new TextureLoaderStore(byteStore));
 
-            if (host != null)
-            {
-                var resources = new DllResourceStore(typeof(SoundVisRuleset).Assembly);
-                var byteStore = new NamespacedResourceStore<byte[]>(resources, "Resources");
-                textureStore = new TextureStore(host.Renderer, new TextureLoaderStore(byteStore));
-                texture = textureStore.Get("Textures/osuvis-logo");
-            }
+            var texture = textureStore.Get("Textures/osuvis-logo");
 
-            if (texture != null)
+            InternalChild = new CircularContainer
             {
-                InternalChild = new CircularContainer
-                {
-                    Size = new Vector2(20),
-                    Masking = true,
-                    Child = new Sprite
-                    {
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        Texture = texture,
-                        FillMode = FillMode.Fit,
-                        RelativeSizeAxes = Axes.Both,
-                    },
-                };
-            }
-            else
-            {
-                // Fallback: solid pink circle so there is always something visible.
-                InternalChild = new CircularContainer
-                {
-                    Size = new Vector2(20),
-                    Masking = true,
-                    Child = new Box
+                RelativeSizeAxes = Axes.Both,
+                Masking = true,
+                Child = texture != null
+                    ? (Drawable)new Sprite
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = new Color4(255, 102, 170, 255),
+                        FillMode         = FillMode.Fit,
+                        Anchor           = Anchor.Centre,
+                        Origin           = Anchor.Centre,
+                        Texture          = texture,
+                    }
+                    : new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour           = new Color4(255, 102, 170, 255),
                     },
-                };
-            }
+            };
         }
 
         protected override void Dispose(bool isDisposing)

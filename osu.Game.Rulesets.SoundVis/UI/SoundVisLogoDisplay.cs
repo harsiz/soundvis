@@ -6,9 +6,9 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
-using osu.Framework.Platform;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Graphics.Containers;
@@ -43,7 +43,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
         private Bindable<WorkingBeatmap>? beatmap { get; set; }
 
         [BackgroundDependencyLoader]
-        private void load(GameHost host)
+        private void load(IRenderer renderer)
         {
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
@@ -85,7 +85,7 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
             var resources = new DllResourceStore(typeof(SoundVisRuleset).Assembly);
             var byteStore = new NamespacedResourceStore<byte[]>(resources, "Resources");
-            textureStore = new TextureStore(host.Renderer, new TextureLoaderStore(byteStore));
+            textureStore = new TextureStore(renderer, new TextureLoaderStore(byteStore));
             logoSprite.Texture = textureStore.Get("Textures/osuvis-logo");
 
             InternalChild = logoContainer;
