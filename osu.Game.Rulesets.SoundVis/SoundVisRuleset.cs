@@ -28,6 +28,9 @@ namespace osu.Game.Rulesets.SoundVis
         public override DifficultyCalculator CreateDifficultyCalculator(IWorkingBeatmap beatmap)
             => new SoundVisDifficultyCalculator(RulesetInfo, beatmap);
 
+        public override PerformanceCalculator CreatePerformanceCalculator()
+            => new SoundVisPerformanceCalculator();
+
         public override IEnumerable<Mod> GetModsFor(ModType type) => type switch
         {
             ModType.DifficultyReduction => new Mod[] { new SoundVisModNoFail() },
