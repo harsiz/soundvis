@@ -6,6 +6,7 @@ using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Mods;
+using osu.Game.Rulesets.SoundVis.Mods;
 using osu.Game.Rulesets.SoundVis.Objects;
 
 namespace osu.Game.Rulesets.SoundVis.Beatmaps
@@ -27,8 +28,17 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
             double totalDuration = (objects[^1].StartTime - objects[0].StartTime) / 1000.0;
             double bps = totalDuration > 0 ? objects.Count / totalDuration : 1.0;
 
-            // Star rating scales with object density (BPS)
-            double stars = Math.Round(Math.Clamp(Math.Log(1 + bps * 3) * 2.5 * clockRate, 1.0, 10.0), 2);
+            // Mod multipliers — approach speed mods make bars harder to react to.
+            // NF never changes star rating (standard osu! behaviour).
+            double modMultiplier = 1.0;
+            foreach (var mod in mods)
+            {
+                if (mod is SoundVisModHarderHardRock) { modMultiplier = 1.9; break; }
+                if (mod is SoundVisModHardRock)        { modMultiplier = 1.4; break; }
+            }
+
+            // Star rating scales with object density (BPS) + mod difficulty
+            double stars = Math.Round(Math.Clamp(Math.Log(1 + bps * 3) * 2.5 * clockRate * modMultiplier, 1.0, 10.0), 2);
             return new DifficultyAttributes(mods, stars);
         }
 

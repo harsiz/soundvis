@@ -35,6 +35,7 @@ namespace osu.Game.Rulesets.SoundVis
         {
             ModType.DifficultyReduction => new Mod[] { new SoundVisModNoFail() },
             ModType.DifficultyIncrease  => new Mod[] { new SoundVisModHardRock(), new SoundVisModHarderHardRock() },
+            ModType.Automation          => new Mod[] { new SoundVisModAutoplay() },
             _ => [],
         };
 
