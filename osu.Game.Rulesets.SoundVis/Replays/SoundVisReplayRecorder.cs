@@ -8,9 +8,22 @@ namespace osu.Game.Rulesets.SoundVis.Replays
 {
     public class SoundVisReplayRecorder : ReplayRecorder<SoundVisAction>
     {
+        private readonly Score score;
+
         public SoundVisReplayRecorder(Score target)
             : base(target)
         {
+            score = target;
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            // Emit an initial "no actions" frame so the FramedReplayInputHandler
+            // always has a valid starting state when replay playback begins.
+            // Without this the handler may start mid-state on the first frame.
+            score.Replay.Frames.Insert(0, new SoundVisReplayFrame(double.MinValue));
         }
 
         protected override ReplayFrame HandleFrame(
