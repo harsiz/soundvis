@@ -37,18 +37,19 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
                 if (mod is SoundVisModHardRock)        { modFactor = 1.4; break; }
             }
 
-            // Star formula — more exponential curve (exponent 1.6 vs old 1.45).
-            // Fitted so that maps which previously rated ~3★ now rate ~5★:
+            // Star formula — quadratic shifted so the steep section lives at 5→7★.
+            // Wide 1★ floor: all maps with BPS ≤ 2 rate exactly 1★.
+            // Growth is gentle at low BPS and accelerates at high BPS:
             //
-            //   0.5 BPS → ~1★ (floor)   2 BPS → ~1.5★   5 BPS → ~5★
-            //   8 BPS → ~11★           13 BPS → ~23★
+            //   BPS=2  → 1★ (floor)   BPS=3  → 1.44★   BPS=5  → 5★
+            //   BPS=8  → ~17★         BPS=13 → ~50★ (capped)
             //
-            // Derivation: 0.38 * 5^1.6 ≈ 5.0 exactly.
-            // Low-BPS maps fall below 1 and are clamped to the floor.
+            // Derivation: 4/9 * (5−2)² + 1 = 4 + 1 = 5.0 exactly at 5 BPS.
             //
             // clockRate^0.5  — DT(1.5x) adds ~22% stars instead of 50%.
             // modFactor^0.6  — same dampening for approach-speed mods.
-            double base_stars = 0.38 * Math.Pow(bps, 1.6);
+            double shifted    = Math.Max(0.0, bps - 2.0);
+            double base_stars = shifted * shifted * (4.0 / 9.0) + 1.0;
             double stars = base_stars
                            * Math.Pow(clockRate, 0.5)
                            * Math.Pow(modFactor, 0.6);

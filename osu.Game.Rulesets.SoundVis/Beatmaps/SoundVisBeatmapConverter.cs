@@ -17,12 +17,39 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
 
         private double lastEmittedTime = double.MinValue;
 
+        // Cached health multiplier — computed once per Convert() call.
+        private double _cachedHealthMultiplier = -1;
+
         public SoundVisBeatmapConverter(IBeatmap beatmap, Ruleset ruleset)
             : base(beatmap, ruleset)
         {
         }
 
         public override bool CanConvert() => true;
+
+        /// <summary>
+        /// Estimates a health drain multiplier from the source beatmap's BPS using the same
+        /// quadratic formula as the star rating calculator.  Clamped to [0.15, 1.0] so
+        /// easy maps drain slowly and 6★+ maps drain at full speed.
+        /// </summary>
+        private double GetHealthMultiplier(IBeatmap beatmap)
+        {
+            if (_cachedHealthMultiplier >= 0)
+                return _cachedHealthMultiplier;
+
+            var objs = beatmap.HitObjects;
+            if (objs.Count < 2)
+                return _cachedHealthMultiplier = 0.15;
+
+            double duration = (objs[^1].StartTime - objs[0].StartTime) / 1000.0;
+            double bps      = duration > 0 ? objs.Count / duration : 1.0;
+
+            // Mirrors the star formula: 4/9 * max(0, bps-2)^2 + 1
+            double shifted  = Math.Max(0.0, bps - 2.0);
+            double estStars = shifted * shifted * (4.0 / 9.0) + 1.0;
+
+            return _cachedHealthMultiplier = Math.Clamp(estStars / 6.0, 0.15, 1.0);
+        }
 
         protected override IEnumerable<SoundVisHitObject> ConvertHitObject(
             HitObject original, IBeatmap beatmap, CancellationToken cancellationToken)
@@ -35,9 +62,10 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
             float angle = GetApproachAngle(original, beatmap);
             var obj = new SoundVisHitObject
             {
-                StartTime = original.StartTime,
-                ApproachAngle = angle,
-                RequiredAction = SoundVisActionHelper.FromAngle(angle),
+                StartTime        = original.StartTime,
+                ApproachAngle    = angle,
+                RequiredAction   = SoundVisActionHelper.FromAngle(angle),
+                HealthMultiplier = GetHealthMultiplier(beatmap),
             };
             obj.Samples.Add(new HitSampleInfo(HitSampleInfo.HIT_NORMAL));
             yield return obj;

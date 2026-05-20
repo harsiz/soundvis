@@ -28,8 +28,8 @@ namespace osu.Game.Rulesets.SoundVis.Objects
         ///   default 150 ms → Perfect ≤ 20ms  Good ≤ 60ms  Ok ≤ 100ms  Meh ≤ 150ms
         ///   HHR     50  ms → Perfect ≤ 6.7ms Good ≤ 20ms  Ok ≤ 33ms   Meh ≤ 50ms
         /// </summary>
-        public double HitWindow  { get; set; } = 150;
-        public double MissWindow { get; set; } = 300;
+        public double HitWindow  { get; set; } = 200;
+        public double MissWindow { get; set; } = 400;
 
         /// <summary>When true (Autoplay) the object self-triggers at StartTime.</summary>
         public bool AutoPlay { get; set; }

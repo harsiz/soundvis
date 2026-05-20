@@ -46,7 +46,13 @@ namespace osu.Game.Rulesets.SoundVis.Objects
         // Derived from RequiredAction — no need to store separately
         public Color4 BarColour => SoundVisActionHelper.GetColour(RequiredAction);
 
-        public override Judgement CreateJudgement() => new SoundVisJudgement();
+        /// <summary>
+        /// Scales health deltas for this object; set by the beatmap converter based on estimated BPS.
+        /// Clamped to [0.15, 1.0] — 1.0 at ≥6★, 0.15 on easy maps.
+        /// </summary>
+        public double HealthMultiplier { get; set; } = 1.0;
+
+        public override Judgement CreateJudgement() => new SoundVisJudgement(HealthMultiplier);
 
         // ── IHasPosition — encodes ApproachAngle for LegacyBeatmapEncoder ────────
 

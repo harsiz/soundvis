@@ -42,13 +42,15 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
             double gradeFactor = 0.80 + 0.20 * topHits;
 
             // ── Difficulty component ────────────────────────────────────────────────
-            // stars^1.5 × 8 peaks at ~2 830pp for a perfect 50★ play (≈ 3 000 cap).
-            double diffPp = Math.Pow(stars, 1.5) * 8.0;
+            // stars^2.2 × 12 — at 11★: 11^2.2 ≈ 195 × 12 = ~2344 base pp.
+            // Targets ~1900pp for a perfect 300-note 11★ play with full modifiers.
+            double diffPp = Math.Pow(stars, 2.2) * 12.0;
 
             // ── Length / volume factor ──────────────────────────────────────────────
             // Shorter maps give less pp than long ones at the same star rating.
-            //   50 notes → ×0.32   200 → ×0.52   500 → ×0.80   1000+ → ×1.00
-            double lengthFactor = Math.Min(1.0, Math.Sqrt(total / 1000.0) + 0.10);
+            // Reaches ×1.0 at 500 notes instead of 1000 (reward medium-length maps more).
+            //   50 notes → ×0.47   200 → ×0.72   500 → ×1.00
+            double lengthFactor = Math.Min(1.0, Math.Pow(total / 500.0, 0.4));
 
             double pp = Math.Max(0, diffPp * accFactor * missPenalty * gradeFactor * lengthFactor);
 
