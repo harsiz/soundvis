@@ -171,14 +171,18 @@ namespace osu.Game.Rulesets.SoundVis.Objects
             {
                 double abs = Math.Abs(timeOffset);
 
-                // Sub-windows are proportional to the outer Meh boundary (HitWindow).
-                // Default (150 ms): Perfect ≤ 20ms  Good ≤ 60ms  Ok ≤ 100ms  Meh ≤ 150ms
+                // Sub-windows scale with the outer Meh boundary (HitWindow).
+                // Default (200 ms): Perfect ≤ 70ms  Good ≤ 120ms  Ok ≤ 165ms  Meh ≤ 200ms
+                // HHR    (50  ms): Perfect ≤ 17ms  Good ≤  30ms  Ok ≤  41ms  Meh ≤  50ms
+                //
+                // Ratios chosen so a casually well-timed hit lands Perfect,
+                // and only a noticeably early/late press grades down.
                 HitResult result;
-                if      (abs <= HitWindow * (20.0  / 150.0)) result = HitResult.Perfect;
-                else if (abs <= HitWindow * (60.0  / 150.0)) result = HitResult.Good;
-                else if (abs <= HitWindow * (100.0 / 150.0)) result = HitResult.Ok;
-                else if (abs <= HitWindow)                   result = HitResult.Meh;
-                else                                         result = HitResult.Miss;
+                if      (abs <= HitWindow * 0.35) result = HitResult.Perfect;
+                else if (abs <= HitWindow * 0.60) result = HitResult.Good;
+                else if (abs <= HitWindow * 0.825) result = HitResult.Ok;
+                else if (abs <= HitWindow)         result = HitResult.Meh;
+                else                               result = HitResult.Miss;
 
                 ApplyResult(result);
                 return;
