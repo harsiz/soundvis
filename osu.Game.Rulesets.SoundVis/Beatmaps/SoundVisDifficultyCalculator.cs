@@ -8,6 +8,7 @@ using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.SoundVis.Mods;
 using osu.Game.Rulesets.SoundVis.Objects;
+using osu.Game.Utils;
 
 namespace osu.Game.Rulesets.SoundVis.Beatmaps
 {
@@ -18,8 +19,12 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
         {
         }
 
-        protected override DifficultyAttributes CreateDifficultyAttributes(IBeatmap beatmap, Mod[] mods, Skill[] skills, double clockRate)
+        protected override DifficultyAttributes CreateDifficultyAttributes(IBeatmap beatmap, Mod[] mods, Skill[] skills)
         {
+            // osu!lazer 2026.702.1 removed the `double clockRate` parameter from the
+            // DifficultyCalculator overrides. The rate is now derived from the mods.
+            double clockRate = ModUtils.CalculateRateWithMods(mods);
+
             var objects = beatmap.HitObjects.OfType<SoundVisHitObject>().ToList();
 
             if (objects.Count < 2)
@@ -59,10 +64,10 @@ namespace osu.Game.Rulesets.SoundVis.Beatmaps
             return new DifficultyAttributes(mods, stars);
         }
 
-        protected override IEnumerable<DifficultyHitObject> CreateDifficultyHitObjects(IBeatmap beatmap, double clockRate)
+        protected override IEnumerable<DifficultyHitObject> CreateDifficultyHitObjects(IBeatmap beatmap, Mod[] mods)
             => [];
 
-        protected override Skill[] CreateSkills(IBeatmap beatmap, Mod[] mods, double clockRate)
+        protected override Skill[] CreateSkills(IBeatmap beatmap, Mod[] mods)
             => [];
     }
 }
