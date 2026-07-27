@@ -25,6 +25,13 @@ namespace osu.Game.Rulesets.SoundVis.Mods
                 dh.ApproachSpeedMultiplier = 2f;
                 dh.HitWindow = 50;
                 dh.MissWindow = 150;
+
+                // Keep the original tight sub-windows — HHR deliberately does not
+                // inherit the lenient base ratios.
+                // Perfect ≤ 17.5ms  Good ≤ 30ms  Ok ≤ 41ms  Meh ≤ 50ms
+                dh.PerfectRatio = 0.35;
+                dh.GoodRatio    = 0.60;
+                dh.OkRatio      = 0.825;
             }
         }
     }

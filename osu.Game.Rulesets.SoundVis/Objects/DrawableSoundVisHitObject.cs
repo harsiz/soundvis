@@ -24,12 +24,24 @@ namespace osu.Game.Rulesets.SoundVis.Objects
         public float ApproachSpeedMultiplier { get; set; } = 1f;
 
         /// <summary>
-        /// Outer timing boundary (Meh window). All sub-windows are derived proportionally.
-        ///   default 150 ms → Perfect ≤ 20ms  Good ≤ 60ms  Ok ≤ 100ms  Meh ≤ 150ms
-        ///   HHR     50  ms → Perfect ≤ 6.7ms Good ≤ 20ms  Ok ≤ 33ms   Meh ≤ 50ms
+        /// Outer timing boundary (Meh window). All sub-windows are derived from the
+        /// grade ratios below.
+        ///   default 230 ms → Perfect ≤ 126ms  Good ≤ 179ms  Ok ≤ 212ms  Meh ≤ 230ms
+        ///   HHR      50 ms → Perfect ≤  17ms  Good ≤  30ms  Ok ≤  41ms  Meh ≤  50ms
         /// </summary>
-        public double HitWindow  { get; set; } = 200;
-        public double MissWindow { get; set; } = 400;
+        public double HitWindow  { get; set; } = 230;
+        public double MissWindow { get; set; } = 450;
+
+        /// <summary>
+        /// Per-grade cutoffs as a fraction of <see cref="HitWindow"/>.
+        /// Defaults are deliberately forgiving — a cleanly intended tap should land
+        /// Perfect, and only a visibly early/late press grades down. Difficulty mods
+        /// (HHR) override these to restore tight, skill-testing sub-windows rather
+        /// than inheriting the lenient base curve.
+        /// </summary>
+        public double PerfectRatio { get; set; } = 0.55;
+        public double GoodRatio    { get; set; } = 0.78;
+        public double OkRatio      { get; set; } = 0.92;
 
         /// <summary>When true (Autoplay) the object self-triggers at StartTime.</summary>
         public bool AutoPlay { get; set; }
@@ -171,18 +183,14 @@ namespace osu.Game.Rulesets.SoundVis.Objects
             {
                 double abs = Math.Abs(timeOffset);
 
-                // Sub-windows scale with the outer Meh boundary (HitWindow).
-                // Default (200 ms): Perfect ≤ 70ms  Good ≤ 120ms  Ok ≤ 165ms  Meh ≤ 200ms
-                // HHR    (50  ms): Perfect ≤ 17ms  Good ≤  30ms  Ok ≤  41ms  Meh ≤  50ms
-                //
-                // Ratios chosen so a casually well-timed hit lands Perfect,
-                // and only a noticeably early/late press grades down.
+                // Sub-windows scale with the outer Meh boundary (HitWindow),
+                // using the per-grade ratios above (mods may tighten them).
                 HitResult result;
-                if      (abs <= HitWindow * 0.35) result = HitResult.Perfect;
-                else if (abs <= HitWindow * 0.60) result = HitResult.Good;
-                else if (abs <= HitWindow * 0.825) result = HitResult.Ok;
-                else if (abs <= HitWindow)         result = HitResult.Meh;
-                else                               result = HitResult.Miss;
+                if      (abs <= HitWindow * PerfectRatio) result = HitResult.Perfect;
+                else if (abs <= HitWindow * GoodRatio)    result = HitResult.Good;
+                else if (abs <= HitWindow * OkRatio)      result = HitResult.Ok;
+                else if (abs <= HitWindow)                result = HitResult.Meh;
+                else                                      result = HitResult.Miss;
 
                 ApplyResult(result);
                 return;
