@@ -1,0 +1,14 @@
+C:\Users\Harsiscool\Projects\ouendan\soundvis\osu.Game.Rulesets.SoundVis\bin\Debug\net8.0\osu.Game.Rulesets.SoundVis.deps.json
+C:\Users\Harsiscool\Projects\ouendan\soundvis\osu.Game.Rulesets.SoundVis\bin\Debug\net8.0\osu.Game.Rulesets.SoundVis.dll
+C:\Users\Harsiscool\Projects\ouendan\soundvis\osu.Game.Rulesets.SoundVis\bin\Debug\net8.0\osu.Game.Rulesets.SoundVis.pdb
+C:\Users\Harsiscool\Projects\ouendan\soundvis\osu.Game.Rulesets.SoundVis\obj\Debug\net8.0\osu.Game.Rulesets.SoundVis.csproj.AssemblyReference.cache
+C:\Users\Harsiscool\Projects\ouendan\soundvis\osu.Game.Rulesets.SoundVis\obj\Debug\net8.0\osu.Game.Rulesets.SoundVis.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Harsiscool\Projects\ouendan\soundvis\osu.Game.Rulesets.SoundVis\obj\Debug\net8.0\Sentry.Attributes.cs
+C:\Users\Harsiscool\Projects\ouendan\soundvis\osu.Game.Rulesets.SoundVis\obj\Debug\net8.0\osu.Game.Rulesets.SoundVis.AssemblyInfoInputs.cache
+C:\Users\Harsiscool\Projects\ouendan\soundvis\osu.Game.Rulesets.SoundVis\obj\Debug\net8.0\osu.Game.Rulesets.SoundVis.AssemblyInfo.cs
+C:\Users\Harsiscool\Projects\ouendan\soundvis\osu.Game.Rulesets.SoundVis\obj\Debug\net8.0\osu.Game.Rulesets.SoundVis.csproj.CoreCompileInputs.cache
+C:\Users\Harsiscool\Projects\ouendan\soundvis\osu.Game.Rulesets.SoundVis\obj\Debug\net8.0\osu.Game.Rulesets.SoundVis.sourcelink.json
+C:\Users\Harsiscool\Projects\ouendan\soundvis\osu.Game.Rulesets.SoundVis\obj\Debug\net8.0\osu.Game.Rulesets.SoundVis.dll
+C:\Users\Harsiscool\Projects\ouendan\soundvis\osu.Game.Rulesets.SoundVis\obj\Debug\net8.0\refint\osu.Game.Rulesets.SoundVis.dll
+C:\Users\Harsiscool\Projects\ouendan\soundvis\osu.Game.Rulesets.SoundVis\obj\Debug\net8.0\osu.Game.Rulesets.SoundVis.pdb
+C:\Users\Harsiscool\Projects\ouendan\soundvis\osu.Game.Rulesets.SoundVis\obj\Debug\net8.0\ref\osu.Game.Rulesets.SoundVis.dll
