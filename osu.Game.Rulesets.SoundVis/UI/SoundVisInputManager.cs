@@ -11,5 +11,12 @@ namespace osu.Game.Rulesets.SoundVis.UI
             : base(ruleset!, 0, SimultaneousBindingMode.Unique)
         {
         }
+
+        /// <summary>
+        /// Public access to the inherited key-binding container so non-keyboard input
+        /// sources (see <see cref="SoundVisTouchOverlay"/>) can raise actions through
+        /// the normal binding pipeline, keeping replay recording intact.
+        /// </summary>
+        public KeyBindingContainer<SoundVisAction> Bindings => KeyBindingContainer;
     }
 }

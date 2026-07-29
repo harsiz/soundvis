@@ -20,6 +20,16 @@ namespace osu.Game.Rulesets.SoundVis.UI
         {
         }
 
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            // Touch zones live in Overlays so they sit above the playfield and receive
+            // touches first. They stay fully transparent until the first touch arrives.
+            if (KeyBindingInputManager is SoundVisInputManager svInputManager)
+                Overlays.Add(new SoundVisTouchOverlay(svInputManager));
+        }
+
         protected override Playfield CreatePlayfield() => new SoundVisPlayfield();
 
         protected override ResumeOverlay? CreateResumeOverlay() => null;
