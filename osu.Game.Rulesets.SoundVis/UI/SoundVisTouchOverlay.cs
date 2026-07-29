@@ -7,11 +7,13 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
+using osu.Framework.Input.StateChanges;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Rulesets.SoundVis.Configuration;
 using osuTK;
 using osuTK.Graphics;
+using osuTK.Input;
 
 namespace osu.Game.Rulesets.SoundVis.UI
 {
@@ -46,6 +48,9 @@ namespace osu.Game.Rulesets.SoundVis.UI
         private readonly Dictionary<SoundVisAction, int> pressCounts = new();
 
         private readonly Dictionary<SoundVisAction, TouchQuadrant> zones = new();
+
+        /// <summary>Which action the mouse is currently holding, if any.</summary>
+        private SoundVisAction? mouseAction;
 
         private readonly BindableBool touchControls = new BindableBool(true);
 
@@ -133,6 +138,42 @@ namespace osu.Game.Rulesets.SoundVis.UI
         {
         }
 
+        // ── Mouse handling ────────────────────────────────────────────────────────
+        // Left-click drives the same quadrant zones, so the overlay is usable (and
+        // testable) on a desktop without a touchscreen.
+
+        protected override bool OnMouseDown(MouseDownEvent e)
+        {
+            if (!touchControls.Value || e.Button != MouseButton.Left)
+                return false;
+
+            // osu!framework synthesises mouse events from touches. Without this guard a
+            // single tap on a real touchscreen would arrive twice — once via OnTouchDown
+            // and again as a synthesised click.
+            if (e.CurrentState.Mouse.LastSource is ISourcedFromTouch)
+                return false;
+
+            var action = actionForPosition(ToLocalSpace(e.ScreenSpaceMousePosition));
+
+            mouseAction = action;
+            pressAction(action);
+
+            zones[action].Flash();
+            reveal();
+
+            return true;
+        }
+
+        protected override void OnMouseUp(MouseUpEvent e)
+        {
+            if (e.Button != MouseButton.Left || mouseAction is not SoundVisAction action)
+                return;
+
+            mouseAction = null;
+            releaseAction(action);
+            zones[action].Unflash();
+        }
+
         private void pressAction(SoundVisAction action)
         {
             pressCounts.TryGetValue(action, out int count);
@@ -160,6 +201,12 @@ namespace osu.Game.Rulesets.SoundVis.UI
                 releaseAction(action);
 
             activeTouches.Clear();
+
+            if (mouseAction is SoundVisAction held)
+            {
+                mouseAction = null;
+                releaseAction(held);
+            }
 
             foreach (var zone in zones.Values)
                 zone.Unflash();
