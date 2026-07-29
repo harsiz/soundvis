@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("osu.Game.Rulesets.SoundVis")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dee364d8ed95ffb6befe6f1d96667b8c6d9a4fe4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d77a7ebdb6c75f0d2c5a43d9024335fe45872bed")]
 [assembly: System.Reflection.AssemblyProductAttribute("osu.Game.Rulesets.SoundVis")]
 [assembly: System.Reflection.AssemblyTitleAttribute("osu.Game.Rulesets.SoundVis")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
