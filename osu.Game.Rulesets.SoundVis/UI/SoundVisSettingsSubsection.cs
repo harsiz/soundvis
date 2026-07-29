@@ -41,6 +41,13 @@ namespace osu.Game.Rulesets.SoundVis.UI
                     TooltipText = "Flash the osu!vis logo white when you hit a note.",
                     Current     = config.GetBindable<bool>(SoundVisRulesetSetting.ShowLightUp),
                 },
+                // ── Input ─────────────────────────────────────────────────────────────
+                new SettingsCheckbox
+                {
+                    LabelText   = "Touch controls",
+                    TooltipText = "Split the screen into four quadrant tap zones for touchscreen play. The zones stay hidden until you first touch the screen, so keyboard play is unaffected.",
+                    Current     = config.GetBindable<bool>(SoundVisRulesetSetting.TouchControls),
+                },
                 // ── Audio-reactive effects ────────────────────────────────────────────
                 new SettingsCheckbox
                 {
