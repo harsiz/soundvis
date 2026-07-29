@@ -54,7 +54,14 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
         private readonly BindableBool touchControls = new BindableBool(true);
 
-        private bool revealed;
+        /// <summary>How long the zones linger after the last tap before fading away.</summary>
+        private const double IDLE_FADE_DELAY = 2500;
+
+        /// <summary>Overall opacity of the zones while active — kept low so they don't fight the bars.</summary>
+        private const float VISIBLE_ALPHA = 0.7f;
+
+        private bool   visible;
+        private double lastInputTime = double.MinValue;
 
         [Resolved(CanBeNull = true)]
         private SoundVisRulesetConfigManager? rulesetConfig { get; set; }
@@ -97,9 +104,30 @@ namespace osu.Game.Rulesets.SoundVis.UI
                 {
                     releaseAll();
                     this.FadeOut(150, Easing.OutQuint);
-                    revealed = false;
+                    visible = false;
                 }
             }, true);
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (!visible)
+                return;
+
+            // Hold the zones up for as long as anything is being held down.
+            if (activeTouches.Count > 0 || mouseAction != null)
+            {
+                lastInputTime = Time.Current;
+                return;
+            }
+
+            if (Time.Current - lastInputTime > IDLE_FADE_DELAY)
+            {
+                visible = false;
+                this.FadeOut(600, Easing.OutQuint);
+            }
         }
 
         // ── Touch handling ────────────────────────────────────────────────────────
@@ -212,13 +240,19 @@ namespace osu.Game.Rulesets.SoundVis.UI
                 zone.Unflash();
         }
 
+        /// <summary>
+        /// Called on every tap/click. Brings the zones back if they've idled out, and
+        /// resets the idle timer either way.
+        /// </summary>
         private void reveal()
         {
-            if (revealed)
+            lastInputTime = Time.Current;
+
+            if (visible)
                 return;
 
-            revealed = true;
-            this.FadeIn(250, Easing.OutQuint);
+            visible = true;
+            this.FadeTo(VISIBLE_ALPHA, 200, Easing.OutQuint);
         }
 
         private SoundVisAction actionForPosition(Vector2 local)
@@ -244,7 +278,9 @@ namespace osu.Game.Rulesets.SoundVis.UI
             private Box       fill   = null!;
             private Container border = null!;
 
-            private const float IDLE_ALPHA = 0.10f;
+            private const float IDLE_FILL_ALPHA   = 0.045f;
+            private const float FLASH_FILL_ALPHA  = 0.26f;
+            private const float IDLE_BORDER_ALPHA = 0.35f;
 
             public TouchQuadrant(SoundVisAction action)
             {
@@ -269,14 +305,15 @@ namespace osu.Game.Rulesets.SoundVis.UI
                     {
                         RelativeSizeAxes = Axes.Both,
                         Colour           = colour,
-                        Alpha            = IDLE_ALPHA,
+                        Alpha            = IDLE_FILL_ALPHA,
                     },
                     border = new Container
                     {
                         RelativeSizeAxes = Axes.Both,
                         Masking          = true,
-                        BorderThickness  = 3f,
+                        BorderThickness  = 2f,
                         BorderColour     = colour,
+                        Alpha            = IDLE_BORDER_ALPHA,
                         Child = new Box
                         {
                             RelativeSizeAxes = Axes.Both,
@@ -287,9 +324,9 @@ namespace osu.Game.Rulesets.SoundVis.UI
                     new OsuSpriteText
                     {
                         Text   = SoundVisActionHelper.GetKeyLabel(action),
-                        Font   = OsuFont.GetFont(size: 28, weight: FontWeight.Bold),
+                        Font   = OsuFont.GetFont(size: 24, weight: FontWeight.Bold),
                         Colour = colour,
-                        Alpha  = 0.5f,
+                        Alpha  = 0.25f,
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                     },
@@ -298,14 +335,14 @@ namespace osu.Game.Rulesets.SoundVis.UI
 
             public void Flash()
             {
-                fill.FadeTo(0.42f, 30, Easing.OutQuint);
+                fill.FadeTo(FLASH_FILL_ALPHA, 30, Easing.OutQuint);
                 border.FadeTo(1f, 30, Easing.OutQuint);
             }
 
             public void Unflash()
             {
-                fill.FadeTo(IDLE_ALPHA, 220, Easing.OutQuint);
-                border.FadeTo(1f, 220, Easing.OutQuint);
+                fill.FadeTo(IDLE_FILL_ALPHA, 220, Easing.OutQuint);
+                border.FadeTo(IDLE_BORDER_ALPHA, 220, Easing.OutQuint);
             }
 
             private static Anchor CornerAnchor(SoundVisAction action) => action switch

@@ -1,6 +1,12 @@
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Localisation;
+using osu.Game.Configuration;
+using osu.Game.Graphics;
+using osu.Game.Graphics.Containers;
+using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Overlays.Settings;
 using osu.Game.Rulesets.SoundVis.Configuration;
@@ -21,13 +27,21 @@ namespace osu.Game.Rulesets.SoundVis.UI
     {
         protected override LocalisableString Header => "osu!vis";
 
+        private readonly BindableBool touchControls        = new BindableBool();
+        private readonly BindableBool mouseButtonsDisabled = new BindableBool();
+
+        private Container mouseDisabledWarning = null!;
+
+        [Resolved]
+        private OsuConfigManager osuConfig { get; set; } = null!;
+
         public SoundVisSettingsSubsection(SoundVisRuleset ruleset)
             : base(ruleset)
         {
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(OsuColour colours)
         {
             var config = (SoundVisRulesetConfigManager)Config;
 
@@ -60,11 +74,31 @@ namespace osu.Game.Rulesets.SoundVis.UI
                 new SettingsItemV2(new FormCheckBox
                 {
                     Caption  = "Touch controls",
-                    HintText = "Split the screen into four quadrant tap zones. Works with both touchscreen taps and mouse clicks. The zones stay hidden until first used, so keyboard play is unaffected.",
+                    HintText = "Split the screen into four quadrant tap zones. The zones stay hidden until first used, and fade out again while idle, so keyboard play is unaffected.",
                     Current  = config.GetBindable<bool>(SoundVisRulesetSetting.TouchControls),
                 })
                 {
                     Keywords = new[] { "touch", "mouse", "tap", "mobile" },
+                },
+
+                // Shown only when touch zones are on *and* osu! is globally swallowing
+                // mouse buttons during gameplay — in that case clicks never reach the
+                // ruleset at all, so the zones look broken with no obvious cause.
+                mouseDisabledWarning = new Container
+                {
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes     = Axes.Y,
+                    Padding          = new MarginPadding { Horizontal = 12, Bottom = 8 },
+                    Alpha            = 0,
+                    Child = new OsuTextFlowContainer(t => t.Font = OsuFont.GetFont(size: 12, weight: FontWeight.SemiBold))
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes     = Axes.Y,
+                        Colour           = colours.Yellow,
+                        Text = "Mouse clicks won't reach the tap zones: \"Disable mouse buttons during gameplay\" "
+                             + "is enabled in Settings → Input. Turn it off to tap with the mouse. "
+                             + "Touchscreen taps still work either way.",
+                    },
                 },
 
                 // ── Audio-reactive effects ────────────────────────────────────────────
@@ -91,6 +125,23 @@ namespace osu.Game.Rulesets.SoundVis.UI
                     LabelFormat  = v => $"{v:0.00}x",
                 }),
             };
+
+            touchControls.BindTo(config.GetBindable<bool>(SoundVisRulesetSetting.TouchControls));
+            mouseButtonsDisabled.BindTo(osuConfig.GetBindable<bool>(OsuSetting.MouseDisableButtons));
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            touchControls.BindValueChanged(_ => updateWarning());
+            mouseButtonsDisabled.BindValueChanged(_ => updateWarning(), true);
+        }
+
+        private void updateWarning()
+        {
+            bool show = touchControls.Value && mouseButtonsDisabled.Value;
+            mouseDisabledWarning.FadeTo(show ? 1 : 0, 200, Easing.OutQuint);
         }
     }
 }
