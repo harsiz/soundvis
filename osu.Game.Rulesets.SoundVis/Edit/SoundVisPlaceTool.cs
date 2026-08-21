@@ -13,7 +13,7 @@ namespace osu.Game.Rulesets.SoundVis.Edit
     /// <summary>
     /// One of the four quadrant placement tools shown in the editor's left toolbar.
     /// </summary>
-    public class SoundVisPlaceTool : CompositionTool
+    public class SoundVisPlaceTool : CompositionTool<SoundVisAction>
     {
         private readonly SoundVisAction action;
 
@@ -22,6 +22,10 @@ namespace osu.Game.Rulesets.SoundVis.Edit
         {
             this.action  = action;
             TooltipText  = $"Place {SoundVisActionHelper.GetKeyLabel(action)} note";
+
+            // osu! 2026.819 added CompositionTool<TAction>.Action, used by the editor to
+            // associate a tool with the ruleset action it places.
+            Action = action;
         }
 
         public override Drawable CreateIcon() => new SoundVisToolIcon(action);

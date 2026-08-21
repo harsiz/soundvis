@@ -19,5 +19,8 @@ namespace osu.Game.Rulesets.SoundVis
 
         /// <summary>Flash the screen edges on loud / kiai beats.</summary>
         ShowBeatFlashes,
+
+        /// <summary>Enable four-quadrant touchscreen tap zones.</summary>
+        TouchControls,
     }
 }

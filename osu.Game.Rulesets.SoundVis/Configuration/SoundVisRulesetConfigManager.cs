@@ -19,6 +19,7 @@ namespace osu.Game.Rulesets.SoundVis.Configuration
             SetDefault(SoundVisRulesetSetting.BarGlowIntensity,      0.5, 0.0, 1.0, 0.05);
             SetDefault(SoundVisRulesetSetting.ShowNextNoteIndicator, true);
             SetDefault(SoundVisRulesetSetting.ShowBeatFlashes,       true);
+            SetDefault(SoundVisRulesetSetting.TouchControls,         true);
         }
     }
 }

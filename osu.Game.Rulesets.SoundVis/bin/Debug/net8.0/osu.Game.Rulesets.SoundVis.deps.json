@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "osu.Game.Rulesets.SoundVis/1.0.0": {
+        "runtime": {
+          "osu.Game.Rulesets.SoundVis.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "osu.Game.Rulesets.SoundVis/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
